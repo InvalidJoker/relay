@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:alpine
+    network_mode: bridge
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=backend
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  postgres_data:

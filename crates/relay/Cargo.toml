@@ -3,4 +3,15 @@ name = "relay"
 version = "0.1.0"
 edition = "2024"
 
+
+
 [dependencies]
+anyhow.workspace = true
+tokio.workspace = true
+relay_common.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+dotenvy.workspace = true
+rustls.workspace = true
+serde.workspace = true
+uuid.workspace = true
