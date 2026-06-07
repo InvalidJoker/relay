@@ -147,11 +147,14 @@ async fn main() -> anyhow::Result<()> {
             info!("Reaching out to relay on relay.invalidjoker.dev");
 
             let local_host = "localhost";
+            let server = "localhost";
+
+            // TODO: ask backend for relay url + getting the token for the relay (we dont give the real backend token)
 
             let client = Client::new(
                 local_host,
                 port,
-                &config.server.host_str().unwrap(),
+                server,
                 remote_port,
                 config.secret,
             )
