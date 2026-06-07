@@ -6,9 +6,5 @@ We also plan to offer unique features, such as persistent domains, so your frien
 
 Relay is currently a work in progress, so don't expect anything too crazy just yet.
 
-# TODO
-
-## AI Usage
-We don't use AI for building Relay, we only use github copilot for autocompletion. We want to keep the codebase as clean and human-readable as possible, and we don't want to rely on AI for anything other than autocompletion.
-
-If you use AI on your contributions, please make sure to mention it in the pull request description.
+## Credits
+- [Bore](https://github.com/ekzhang/bore/blob/main/src/main.rs) Huge thanks to Bore for providing a great example of how to build a TCP tunneling service. I took a lot of inspiration from their codebase, and I highly recommend checking it out if you're interested in building something similar.
