@@ -51,7 +51,9 @@ async fn main() -> anyhow::Result<()> {
 
     let port_range = 10000..=20000;
     let bind = IpAddr::from([0, 0, 0, 0]);
-    let mut server = Server::new(port_range, bind);
+    let backend_url = env::var("BACKEND_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
+    
+    let mut server = Server::new(port_range, bind, backend_url);
     server.listen().await?;
 
     Ok(())

@@ -7,13 +7,30 @@ pub enum RelayType {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct HostConfig {
-    pub relay_type: RelayType,
+pub struct TcpHostConfig {
     pub local_port: u16,
 
-    /// If None, the server will assign a random port.
+    /// Optional remote port (if None, we will randomly assign one)
     pub remote_port: Option<u16>,
+}
 
-    /// Optional domain for HTTP relay (e.g., "example.com")
+#[derive(Debug, Serialize, Deserialize)]
+pub struct HttpHostConfig {
+    pub local_port: u16,
+
+    /// Optional custom domain (subdomain will be assigned if None)
     pub domain: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(tag = "type", content = "config")]
+pub enum HostConfig {
+    Tcp(TcpHostConfig),
+    Http(HttpHostConfig),
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct HelloMessage {
+    pub token: String,
+    pub host_config: HostConfig,
 }

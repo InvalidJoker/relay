@@ -1,16 +1,12 @@
-use crate::model::relay::HostConfig;
-use futures_util::StreamExt;
+use crate::model::relay::HelloMessage;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
 /// A message from the client on the relay
 #[derive(Debug, Serialize, Deserialize)]
 pub enum ClientMessage {
-    /// Response to an authentication challenge from the server.
-    Authenticate(String),
-
-    /// Initial client message specifying a port to forward.
-    Hello(HostConfig),
+    /// Initial client message specifying a port to forward and authentication token.
+    Hello(HelloMessage),
 
     /// Accepts an incoming TCP connection, using this stream as a proxy.
     Accept(Uuid),
