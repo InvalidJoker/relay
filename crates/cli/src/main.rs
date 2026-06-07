@@ -1,6 +1,8 @@
+mod config;
+
 use clap::{Parser, Subcommand, ValueEnum};
 use url::Url;
-use relay_common::model::r#type::RelayType;
+use relay_common::model::relay::RelayType;
 
 #[derive(Parser, Debug)]
 #[command(name = "relay")]

@@ -1,0 +1,3 @@
+- Split Common
+  - CLI Common (communication between relay and cli)
+  - Backend Common (communication between relay and backend)
