@@ -1,10 +1,10 @@
 use crate::{Backend, routes};
+use anyhow::Context;
 use axum::{Router, extract::Request};
 use axum_server::{Handle, Server};
 use core::time::Duration;
-use std::net::SocketAddr;
-use anyhow::Context;
 use http::Method;
+use std::net::SocketAddr;
 use tokio::sync::broadcast::error::RecvError;
 use tower_http::{
     cors::{AllowHeaders, AllowOrigin, CorsLayer},
@@ -35,7 +35,6 @@ impl Backend {
     }
 
     pub async fn serve_http(&self) -> Result<(), anyhow::Error> {
-
         let addr = SocketAddr::from(([0, 0, 0, 0], 3000));
 
         let listener = tokio::net::TcpListener::bind(addr).await?;

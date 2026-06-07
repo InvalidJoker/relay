@@ -1,19 +1,19 @@
-mod config;
 mod client;
+mod config;
 
-use std::env;
-use std::path::PathBuf;
+use crate::client::Client;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
 use rand::RngExt;
+use serde::{Deserialize, Serialize};
+use std::env;
+use std::path::PathBuf;
 use tracing::{error, info};
+use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use url::Url;
 use uuid::Uuid;
-use serde::{Deserialize, Serialize};
-use tracing_subscriber::fmt::writer::MakeWriterExt;
-use crate::client::Client;
 
 #[derive(Parser, Debug)]
 #[command(name = "relay")]
@@ -29,7 +29,7 @@ struct Cli {
 #[derive(Subcommand, Debug)]
 enum Commands {
     Login {
-        server: Option<Url>
+        server: Option<Url>,
     },
     Http {
         /// The Local port to listen on
@@ -51,7 +51,7 @@ enum Commands {
 #[derive(Debug, Serialize, Deserialize, Clone)]
 struct Config {
     server: Url,
-    secret: Option<String>,
+    secret: String,
 }
 
 #[tokio::main]
@@ -74,7 +74,6 @@ async fn main() -> anyhow::Result<()> {
         .clone()
         .or_else(|| dirs::home_dir().map(|d| d.join(".config/relay.toml")));
 
-
     let config = config_path
         .as_ref()
         .and_then(|path| std::fs::read_to_string(path).ok())
@@ -87,7 +86,7 @@ async fn main() -> anyhow::Result<()> {
 
     let config = config.unwrap_or_else(|| Config {
         server: Url::parse("https://relay.invalidjoker.dev").unwrap(),
-        secret: None,
+        secret: String::new(),
     }); // the default config is only used for login, so it's fine to have an empty secret
 
     match args.command {
@@ -100,22 +99,18 @@ async fn main() -> anyhow::Result<()> {
 
             // write config
             let config = Config {
-                server: server.unwrap_or_else(|| Url::parse("https://relay.invalidjoker.dev").unwrap()),
-                secret: Some(id),
+                server: server
+                    .unwrap_or_else(|| Url::parse("https://relay.invalidjoker.dev").unwrap()),
+                secret: id,
             };
 
             let config_path = config_path
                 .as_ref()
                 .expect("Failed to determine config path");
 
-            std::fs::create_dir_all(
-                config_path.parent().expect("Config path has no parent")
-            )?;
+            std::fs::create_dir_all(config_path.parent().expect("Config path has no parent"))?;
 
-            std::fs::write(
-                config_path,
-                toml::to_string(&config)?
-            )?;
+            std::fs::write(config_path, toml::to_string(&config)?)?;
 
             info!("Login successful");
         }
@@ -124,13 +119,11 @@ async fn main() -> anyhow::Result<()> {
 
             let nato_alphabet = vec![
                 "alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel", "india",
-                "juliett", "kilo", "lima", "mike", "november", "oscar", "papa", "quebec",
-                "romeo", "sierra", "tango", "uniform", "victor", "whiskey", "x-ray",
-                "yankee", "zulu",
+                "juliett", "kilo", "lima", "mike", "november", "oscar", "papa", "quebec", "romeo",
+                "sierra", "tango", "uniform", "victor", "whiskey", "x-ray", "yankee", "zulu",
             ];
 
             let mut rng = rand::rng();
-
 
             let subdomain = subdomain.unwrap_or_else(|| {
                 let mut subdomain = String::new();
@@ -155,31 +148,15 @@ async fn main() -> anyhow::Result<()> {
 
             let local_host = "localhost";
 
-            /*
-            local_host: &str,
-        local_port: u16,
-        to: &str,
-        secret: Option<&str>,
-             */
-
-            let client = Client::new(local_host,
-                                     port,
-                                     &config.server.host_str().unwrap(),
-                                     config.secret.as_deref()
-            ).await?;
+            let client = Client::new(
+                local_host,
+                port,
+                &config.server.host_str().unwrap(),
+                remote_port,
+                config.secret,
+            )
+            .await?;
             client.listen().await?;
-
-            let remote_port = remote_port.unwrap_or_else(|| {
-                let mut rng = rand::rng();
-                rng.random_range(1024..65535)
-            });
-
-            info!("Listening on port {port} with remote port {remote_port}");
-
-            // keep alive until ctrl+c
-            loop {
-                std::thread::park();
-            }
         }
     }
 

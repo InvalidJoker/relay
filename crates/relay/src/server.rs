@@ -1,20 +1,20 @@
+use crate::auth::Authentication;
+use anyhow::Result;
+use dashmap::DashMap;
+use relay_common::connection::{ClientMessage, RelayMessage};
+use relay_common::constants::RELAY_PORT;
+use relay_common::model::relay::HostConfig;
+use relay_common::worker::StreamWorker;
 use std::net::IpAddr;
 use std::ops::RangeInclusive;
 use std::sync::Arc;
 use std::time::Duration;
-use tokio::net::{TcpListener, TcpStream};
-use tracing::{info, info_span, warn, Instrument};
-use relay_common::connection::{ClientMessage, RelayMessage};
-use relay_common::constants::RELAY_PORT;
-use anyhow::Result;
-use dashmap::DashMap;
 use tokio::io;
 use tokio::io::AsyncWriteExt;
-use uuid::Uuid;
-use relay_common::model::relay::HostConfig;
-use relay_common::worker::StreamWorker;
-use crate::auth::Authentication;
+use tokio::net::{TcpListener, TcpStream};
 use tokio::time::{sleep, timeout};
+use tracing::{Instrument, info, info_span, warn};
+use uuid::Uuid;
 
 pub struct Server {
     /// The port range to listen on.
@@ -56,7 +56,7 @@ impl Server {
                         info!("connection exited");
                     }
                 }
-                    .instrument(info_span!("control", ?addr)),
+                .instrument(info_span!("control", ?addr)),
             );
         }
     }
@@ -113,7 +113,11 @@ impl Server {
                     HostConfig::Tcp(tcp) => {
                         if let Err(err) = self.auth.check_tcp(&msg.token, tcp.remote_port).await {
                             warn!(%err, "authentication failed");
-                            stream.send(relay_common::connection::RelayMessage::Error(err.to_string())).await?;
+                            stream
+                                .send(relay_common::connection::RelayMessage::Error(
+                                    err.to_string(),
+                                ))
+                                .await?;
                             return Ok(());
                         }
 
@@ -155,7 +159,9 @@ impl Server {
                     }
                     HostConfig::Http(_) => {
                         warn!("http not supported yet");
-                        stream.send(RelayMessage::Error("http not supported yet".to_string())).await?;
+                        stream
+                            .send(RelayMessage::Error("http not supported yet".to_string()))
+                            .await?;
                         Ok(())
                     }
                 }

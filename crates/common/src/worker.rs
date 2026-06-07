@@ -1,15 +1,15 @@
 // insipired by https://github.com/ekzhang/bore/blob/main/src/shared.rs
 
+use crate::constants::{MAX_FRAME_LENGTH, NETWORK_TIMEOUT};
 use anyhow::Context;
 use bytes::Bytes;
 use futures_util::{SinkExt, StreamExt};
-use serde::de::DeserializeOwned;
 use serde::Serialize;
+use serde::de::DeserializeOwned;
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::time::timeout;
 use tokio_util::codec::{Framed, FramedParts, LengthDelimitedCodec};
 use tracing::trace;
-use crate::constants::{MAX_FRAME_LENGTH, NETWORK_TIMEOUT};
 
 /// A wrapper around a framed stream that uses length-delimited frames and postcard serialization.
 pub struct StreamWorker<U>(Framed<U, LengthDelimitedCodec>);

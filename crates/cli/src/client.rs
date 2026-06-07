@@ -1,14 +1,14 @@
-use std::sync::Arc;
 use anyhow::bail;
-use relay_common::worker::StreamWorker;
-use tokio::net::TcpStream;
-use tracing::{error, info, info_span, warn, Instrument};
+use anyhow::{Context, Result};
 use relay_common::connection::{ClientMessage, RelayMessage};
 use relay_common::constants::{NETWORK_TIMEOUT, RELAY_PORT};
 use relay_common::model::relay::{HelloMessage, HostConfig, TcpHostConfig};
-use anyhow::{Context, Result};
+use relay_common::worker::StreamWorker;
+use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
+use tokio::net::TcpStream;
 use tokio::time::timeout;
+use tracing::{Instrument, error, info, info_span, warn};
 use uuid::Uuid;
 
 pub struct Client {
@@ -23,11 +23,7 @@ pub struct Client {
 
     /// Local port that is forwarded.
     local_port: u16,
-
-    /// Port that is publicly available on the remote.
-    remote_port: u16,
 }
-
 
 impl Client {
     /// Create a new client.
@@ -35,16 +31,17 @@ impl Client {
         local_host: &str,
         local_port: u16,
         to: &str,
-        secret: Option<&str>,
+        remote_port: Option<u16>,
+        secret: String,
     ) -> Result<Self> {
         let mut stream = StreamWorker::new(connect_with_timeout(to, RELAY_PORT).await?);
 
         let msg = HelloMessage {
-            token: "no_way".to_string(),
+            token: secret,
             host_config: HostConfig::Tcp(TcpHostConfig {
                 local_port,
-                remote_port: None,
-            })
+                remote_port,
+            }),
         };
 
         stream.send(ClientMessage::Hello(msg)).await?;
@@ -62,13 +59,7 @@ impl Client {
             to: to.to_string(),
             local_host: local_host.to_string(),
             local_port,
-            remote_port
         })
-    }
-
-    /// Returns the port publicly available on the remote.
-    pub fn remote_port(&self) -> u16 {
-        self.remote_port
     }
 
     /// Start the client, listening for new connections.
@@ -89,7 +80,7 @@ impl Client {
                                 Err(err) => warn!(%err, "connection exited with error"),
                             }
                         }
-                            .instrument(info_span!("proxy", %id)),
+                        .instrument(info_span!("proxy", %id)),
                     );
                 }
                 Some(RelayMessage::Error(err)) => error!(%err, "server error"),
@@ -116,5 +107,5 @@ async fn connect_with_timeout(to: &str, port: u16) -> Result<TcpStream> {
         Ok(res) => res,
         Err(err) => Err(err.into()),
     }
-        .with_context(|| format!("could not connect to {to}:{port}"))
+    .with_context(|| format!("could not connect to {to}:{port}"))
 }

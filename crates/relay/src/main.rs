@@ -1,12 +1,12 @@
+use crate::server::Server;
 use std::env;
 use std::net::IpAddr;
 use tracing::info;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
-use crate::server::Server;
 
-mod server;
 mod auth;
+mod server;
 /*
 IDEA:
 - relay is the tcp proxy which runs under relay.invalidjoker.dev for example
@@ -51,8 +51,9 @@ async fn main() -> anyhow::Result<()> {
 
     let port_range = 10000..=20000;
     let bind = IpAddr::from([0, 0, 0, 0]);
-    let backend_url = env::var("BACKEND_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
-    
+    let backend_url =
+        env::var("BACKEND_URL").unwrap_or_else(|_| "http://localhost:8080".to_string());
+
     let mut server = Server::new(port_range, bind, backend_url);
     server.listen().await?;
 

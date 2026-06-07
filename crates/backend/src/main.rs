@@ -1,25 +1,25 @@
-use std::env;
-use std::sync::Arc;
 use anyhow::Context;
 use sqlx::PgPool;
 use sqlx::postgres::PgPoolOptions;
+use std::env;
+use std::sync::Arc;
 use tracing::{info, warn};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
-mod http;
 mod error;
+mod http;
 mod routes;
 
 #[derive(Clone)]
 pub(crate) struct Backend {
-    pub(crate) db: Arc<PgPool>
+    pub(crate) db: Arc<PgPool>,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     dotenvy::dotenv().ok();
-    
+
     tracing_subscriber::registry()
         .with(tracing_subscriber::filter::LevelFilter::from_level(
             if cfg!(debug_assertions) || env::var("DEBUG").unwrap_or_default().eq("1") {
@@ -38,8 +38,7 @@ async fn main() -> anyhow::Result<()> {
     info!("Starting Backend on version {}", env!("GIT_HASH"));
 
     let database_url =
-        std::env::var("DATABASE_URL")
-            .context("DATABASE_URL environment variable is not set")?;
+        std::env::var("DATABASE_URL").context("DATABASE_URL environment variable is not set")?;
 
     let database = PgPoolOptions::new()
         .max_connections(10)
@@ -52,9 +51,9 @@ async fn main() -> anyhow::Result<()> {
     };
 
     /*sqlx::migrate!("./migrations")
-        .run(&*database)
-        .await
-        .expect("Unable to run migrations");*/
+    .run(&*database)
+    .await
+    .expect("Unable to run migrations");*/
 
     info!("Starting Webserver...");
 

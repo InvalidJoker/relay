@@ -1,5 +1,5 @@
-use reqwest::Client;
 use relay_common::model::relay::RelayType;
+use reqwest::Client;
 
 pub struct Authentication {
     host: String,
@@ -14,7 +14,12 @@ impl Authentication {
         }
     }
 
-    async fn check(&self, token: &str, provided: Option<String>, relay_type: RelayType) -> anyhow::Result<()> {
+    async fn check(
+        &self,
+        token: &str,
+        provided: Option<String>,
+        relay_type: RelayType,
+    ) -> anyhow::Result<()> {
         /*let url = format!("{}/internal/test", self.host);
         let resp = self.client
             .get(&url)
@@ -34,11 +39,12 @@ impl Authentication {
         }*/
         Ok(())
     }
-    
+
     pub async fn check_tcp(&self, token: &str, port: Option<u16>) -> anyhow::Result<()> {
-        self.check(token, port.map(|p| p.to_string()), RelayType::Tcp).await
+        self.check(token, port.map(|p| p.to_string()), RelayType::Tcp)
+            .await
     }
-    
+
     pub async fn check_http(&self, token: &str, domain: Option<String>) -> anyhow::Result<()> {
         self.check(token, domain, RelayType::Http).await
     }
