@@ -1,5 +1,5 @@
 [workspace]
-members = ["crates/backend", "crates/common", "crates/relay"]
+members = ["crates/backend", "crates/common", "crates/relay", "crates/cli"]
 resolver = "3"
 
 [workspace.lints.rust]
@@ -189,7 +189,23 @@ little_endian_bytes = "deny"
 
 
 [workspace.dependencies]
+anyhow = "1.0.102"
+clap = { version = "4.6.1", features = ["color", "derive"] }
+reqwest = { version = "0.13.4", features = [ "charset",
+    "http2",
+    "macos-system-configuration",
+    "json",
+] }
+serde = { version = "1.0.228", features = ["derive"] }
+toml = { version = "1.1.2", features = ["serde"] }
 
+tokio = "1.52.3"
+tokio-util = "0.7.18"
+url = "2.5.8"
 
 [profile.dev.package.sqlx-macros]
 opt-level = 3
+
+
+[workspace.dependencies.relay_common]
+path = "crates/common"

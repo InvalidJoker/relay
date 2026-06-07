@@ -1,0 +1,13 @@
+[package]
+name = "relay_cli"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow.workspace = true
+url.workspace = true
+relay_common.workspace = true
+
+[dependencies.clap]
+version = "4.6.1"
+features = ["color", "env", "derive"]
