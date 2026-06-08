@@ -1,3 +1,27 @@
 /target
 .idea
 /test
+
+node_modules
+
+# Output
+.output
+.vercel
+.netlify
+.wrangler
+crates/app/.svelte-kit
+crates/app/build
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env
+.env
+.env.*
+!.env.example
+!.env.test
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
