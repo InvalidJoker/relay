@@ -1,5 +1,6 @@
 mod client;
 mod config;
+mod auth;
 
 use crate::client::Client;
 use anyhow::Context;
@@ -8,12 +9,13 @@ use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::path::PathBuf;
+use std::time::Duration;
 use tracing::{error, info};
-use tracing_subscriber::fmt::writer::MakeWriterExt;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use url::Url;
 use uuid::Uuid;
+use crate::auth::TokenResponse;
 
 #[derive(Parser, Debug)]
 #[command(name = "relay")]
@@ -97,22 +99,68 @@ async fn main() -> anyhow::Result<()> {
             // empty lines
             println!();
 
-            // write config
-            let config = Config {
-                server: server
-                    .unwrap_or_else(|| Url::parse("https://relay.invalidjoker.dev").unwrap()),
-                secret: id,
-            };
+            let client = reqwest::Client::new();
 
-            let config_path = config_path
-                .as_ref()
-                .expect("Failed to determine config path");
 
-            std::fs::create_dir_all(config_path.parent().expect("Config path has no parent"))?;
+            let server = server
+                .unwrap_or_else(|| Url::parse("https://relay.invalidjoker.dev").unwrap());
 
-            std::fs::write(config_path, toml::to_string(&config)?)?;
+            let response = auth::request_device_code(server.clone(), &client).await.context("Failed to request device code")?;
 
-            info!("Login successful");
+            info!("Please visit {} to login with the code: {}", response.verification_uri_complete, response.user_code);
+
+
+            loop {
+                tokio::time::sleep(Duration::from_secs(
+                    response.interval.unwrap_or(5)
+                )).await;
+
+                let token = client
+                    //.post("https://auth.example.com/api/auth/device/token")
+                    .post(server.join("/api/auth/device/token")?)
+                    .json(&serde_json::json!({
+            "grant_type":
+                "urn:ietf:params:oauth:grant-type:device_code",
+            "device_code": response.device_code,
+            "client_id": "my-cli"
+        }))
+                    .send()
+                    .await?
+                    .json::<TokenResponse>()
+                    .await?;
+
+                if let Some(access_token) = token.access_token {
+                    let config = Config {
+                        server: server.clone(),
+                        secret: access_token,
+                    };
+
+                    let config_path = config_path
+                        .as_ref()
+                        .expect("Failed to determine config path");
+
+                    std::fs::create_dir_all(config_path.parent().expect("Config path has no parent"))?;
+
+                    std::fs::write(config_path, toml::to_string(&config)?)?;
+
+                    info!("Login successful");
+                    break;
+                }
+
+                match token.error.as_deref() {
+                    Some("authorization_pending") => continue,
+                    Some("slow_down") => continue,
+                    Some("access_denied") => {
+                        eprintln!("Login denied");
+                        break;
+                    }
+                    Some("expired_token") => {
+                        eprintln!("Login expired");
+                        break;
+                    }
+                    _ => {}
+                }
+            }
         }
         Commands::Http { port, subdomain } => {
             info!("Reaching out to relay on relay.invalidjoker.dev");

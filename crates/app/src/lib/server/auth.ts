@@ -4,6 +4,7 @@ import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { env } from '$env/dynamic/private';
 import { getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
+import { deviceAuthorization } from "better-auth/plugins";
 
 export const auth = betterAuth({
 	baseURL: env.ORIGIN,
@@ -11,6 +12,10 @@ export const auth = betterAuth({
 	database: drizzleAdapter(db, { provider: 'pg' }),
 	emailAndPassword: { enabled: true },
 	plugins: [
-		sveltekitCookies(getRequestEvent) // make sure this is the last plugin in the array
+		sveltekitCookies(getRequestEvent), // make sure this is the last plugin in the array
+		deviceAuthorization({
+			verificationUri: "/device",
+			schema: {}
+		}),
 	]
 });
