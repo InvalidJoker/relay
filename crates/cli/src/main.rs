@@ -1,7 +1,8 @@
+mod auth;
 mod client;
 mod config;
-mod auth;
 
+use crate::auth::TokenResponse;
 use crate::client::Client;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
@@ -15,7 +16,6 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use url::Url;
 use uuid::Uuid;
-use crate::auth::TokenResponse;
 
 #[derive(Parser, Debug)]
 #[command(name = "relay")]
@@ -93,37 +93,31 @@ async fn main() -> anyhow::Result<()> {
 
     match args.command {
         Commands::Login { server } => {
-            let id = Uuid::new_v4().to_string();
-            info!("Visit https://relay.local/login?token={id} to login");
-
-            // empty lines
-            println!();
-
             let client = reqwest::Client::new();
 
+            let server =
+                server.unwrap_or_else(|| Url::parse("https://relay.invalidjoker.dev").unwrap());
 
-            let server = server
-                .unwrap_or_else(|| Url::parse("https://relay.invalidjoker.dev").unwrap());
+            let response = auth::request_device_code(server.clone(), &client)
+                .await
+                .context("Failed to request device code")?;
 
-            let response = auth::request_device_code(server.clone(), &client).await.context("Failed to request device code")?;
-
-            info!("Please visit {} to login with the code: {}", response.verification_uri_complete, response.user_code);
-
+            info!(
+                "Please visit {} to login with the code: {}",
+                response.verification_uri_complete, response.user_code
+            );
 
             loop {
-                tokio::time::sleep(Duration::from_secs(
-                    response.interval.unwrap_or(5)
-                )).await;
+                tokio::time::sleep(Duration::from_secs(response.interval.unwrap_or(5))).await;
 
                 let token = client
                     //.post("https://auth.example.com/api/auth/device/token")
                     .post(server.join("/api/auth/device/token")?)
                     .json(&serde_json::json!({
-            "grant_type":
-                "urn:ietf:params:oauth:grant-type:device_code",
-            "device_code": response.device_code,
-            "client_id": "my-cli"
-        }))
+                        "grant_type": "urn:ietf:params:oauth:grant-type:device_code",
+                        "device_code": response.device_code,
+                        "client_id": "cli"
+                    }))
                     .send()
                     .await?
                     .json::<TokenResponse>()
@@ -139,7 +133,9 @@ async fn main() -> anyhow::Result<()> {
                         .as_ref()
                         .expect("Failed to determine config path");
 
-                    std::fs::create_dir_all(config_path.parent().expect("Config path has no parent"))?;
+                    std::fs::create_dir_all(
+                        config_path.parent().expect("Config path has no parent"),
+                    )?;
 
                     std::fs::write(config_path, toml::to_string(&config)?)?;
 
@@ -156,6 +152,10 @@ async fn main() -> anyhow::Result<()> {
                     }
                     Some("expired_token") => {
                         eprintln!("Login expired");
+                        break;
+                    }
+                    Some("invalid_grant") => {
+                        eprintln!("Invalid device code");
                         break;
                     }
                     _ => {}
@@ -199,14 +199,7 @@ async fn main() -> anyhow::Result<()> {
 
             // TODO: ask backend for relay url + getting the token for the relay (we dont give the real backend token)
 
-            let client = Client::new(
-                local_host,
-                port,
-                server,
-                remote_port,
-                config.secret,
-            )
-            .await?;
+            let client = Client::new(local_host, port, server, remote_port, config.secret).await?;
             client.listen().await?;
         }
     }

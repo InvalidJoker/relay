@@ -16,7 +16,10 @@ pub(crate) struct TokenResponse {
     pub(crate) error: Option<String>,
 }
 
-pub(crate) async fn request_device_code(server: Url, client: &Client) -> anyhow::Result<DeviceCodeResponse> {
+pub(crate) async fn request_device_code(
+    server: Url,
+    client: &Client,
+) -> anyhow::Result<DeviceCodeResponse> {
     let response = client
         .post(server.join("/api/auth/device/code")?)
         .json(&serde_json::json!({
