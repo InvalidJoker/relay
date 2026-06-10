@@ -19,3 +19,4 @@ reqwest.workspace = true
 fastrand = "2.4.1"
 dashmap = "6.2.1"
 serde_json.workspace = true
+axum.workspace = true

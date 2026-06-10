@@ -77,35 +77,25 @@ impl Server {
             }
             try_bind(port).await
         } else {
-            // Client requests any available port in range.
-            //
-            // In this case, we bind to 150 random port numbers. We choose this value because in
-            // order to find a free port with probability at least 1-δ, when ε proportion of the
-            // ports are currently available, it suffices to check approximately -2 ln(δ) / ε
-            // independently and uniformly chosen ports (up to a second-order term in ε).
-            //
-            // Checking 150 times gives us 99.999% success at utilizing 85% of ports under these
-            // conditions, when ε=0.15 and δ=0.00001.
-            for _ in 0..150 {
-                let port = fastrand::u16(self.port_range.clone());
-                match try_bind(port).await {
-                    Ok(listener) => return Ok(listener),
-                    Err(_) => continue,
+            let base = *self.port_range.start();
+            let len = self.port_range.clone().count();
+
+            let start = fastrand::usize(..len);
+
+            for i in 0..len {
+                let port = base + ((start + i) % len) as u16;
+
+                if let Ok(listener) = try_bind(port).await {
+                    return Ok(listener);
                 }
             }
+
             Err("failed to find an available port")
         }
     }
 
     async fn handle_connection(&self, stream: TcpStream) -> Result<()> {
         let mut stream = StreamWorker::new(stream);
-        /*if let Some(auth) = &self.auth {
-            if let Err(err) = auth.server_handshake(&mut stream).await {
-                warn!(%err, "server handshake failed");
-                stream.send(ServerMessage::Error(err.to_string())).await?;
-                return Ok(());
-            }
-        }*/
 
         match stream.recv_timeout().await? {
             Some(ClientMessage::Hello(msg)) => {
