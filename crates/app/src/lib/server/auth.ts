@@ -14,7 +14,7 @@ export const auth = betterAuth({
 	plugins: [
 		sveltekitCookies(getRequestEvent), // make sure this is the last plugin in the array
 		deviceAuthorization({
-			verificationUri: "/api/cli",
+			verificationUri: "/api/internal/auth/cli",
 			validateClient: async (clientId) => clientId === "cli",
 			schema: {}
 		}),

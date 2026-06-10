@@ -20,7 +20,7 @@ impl Authentication {
         provided: Option<String>,
         relay_type: RelayType,
     ) -> anyhow::Result<()> {
-        let url = format!("{}/api/relay", self.host);
+        let url = format!("{}/api/internal/auth/relay", self.host);
         let resp = self.client
             .get(&url)
             .header("Authorization", format!("Bearer {}", token))
