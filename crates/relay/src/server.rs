@@ -114,8 +114,8 @@ impl Server {
                         if let Err(err) = self.auth.check_tcp(&msg.token, tcp.remote_port).await {
                             warn!(%err, "authentication failed");
                             stream
-                                .send(relay_common::connection::RelayMessage::Error(
-                                    err.to_string(),
+                                .send(RelayMessage::Error(
+                                    "authentication failed".to_string(),
                                 ))
                                 .await?;
                             return Ok(());

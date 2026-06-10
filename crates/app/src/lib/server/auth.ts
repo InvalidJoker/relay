@@ -4,7 +4,7 @@ import { sveltekitCookies } from 'better-auth/svelte-kit';
 import { env } from '$env/dynamic/private';
 import { getRequestEvent } from '$app/server';
 import { db } from '$lib/server/db';
-import { deviceAuthorization } from "better-auth/plugins";
+import {bearer, deviceAuthorization} from "better-auth/plugins";
 
 export const auth = betterAuth({
 	baseURL: env.ORIGIN,
@@ -18,5 +18,6 @@ export const auth = betterAuth({
 			validateClient: async (clientId) => clientId === "cli",
 			schema: {}
 		}),
+		bearer()
 	]
 });

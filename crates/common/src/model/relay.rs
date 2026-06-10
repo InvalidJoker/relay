@@ -1,3 +1,4 @@
+use core::fmt;
 use serde::{Deserialize, Serialize};
 
 #[derive(Copy, Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -33,4 +34,13 @@ pub enum HostConfig {
 pub struct HelloMessage {
     pub token: String,
     pub host_config: HostConfig,
+}
+
+impl fmt::Display for RelayType {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            RelayType::Http => write!(f, "http"),
+            RelayType::Tcp => write!(f, "tcp"),
+        }
+    }
 }

@@ -20,12 +20,12 @@ impl Authentication {
         provided: Option<String>,
         relay_type: RelayType,
     ) -> anyhow::Result<()> {
-        /*let url = format!("{}/internal/test", self.host);
+        let url = format!("{}/api/relay", self.host);
         let resp = self.client
             .get(&url)
             .header("Authorization", format!("Bearer {}", token))
             .header("X-Provided", provided.unwrap_or_default())
-            .header("X-Relay-Type", serde_json::to_string(&relay_type)?)
+            .header("X-Relay-Type", relay_type.to_string())
             .send()
             .await?;
 
@@ -33,11 +33,10 @@ impl Authentication {
             Ok(())
         } else {
             Err(anyhow::anyhow!(
-                "Authentication failed with status code: {}",
-                resp.status()
+                "Authentication failed with response: {}",
+                resp.text().await?
             ))
-        }*/
-        Ok(())
+        }
     }
 
     pub async fn check_tcp(&self, token: &str, port: Option<u16>) -> anyhow::Result<()> {
