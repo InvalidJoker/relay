@@ -16,6 +16,7 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use url::Url;
 use uuid::Uuid;
+use relay_common::model::relay::RelayType;
 
 #[derive(Parser, Debug)]
 #[command(name = "relay")]
@@ -47,6 +48,10 @@ enum Commands {
         /// Not everybody can select the port they want and also it never needs to be required
         remote_port: Option<u16>,
     },
+    Run {
+        #[arg(short, long)]
+        path: PathBuf,
+    }
     // TODO: run command, run from config
 }
 
@@ -201,6 +206,19 @@ async fn main() -> anyhow::Result<()> {
 
             let client = Client::new(local_host, port, server, remote_port, config.secret).await?;
             client.listen().await?;
+        }
+        Commands::Run { path } => {
+            let config_content = std::fs::read_to_string(path)?;
+            let config: config::Config = toml::from_str(&config_content)?;
+
+            match config.relay_type {
+                RelayType::Http => {
+                    info!("Running HTTP relay with config: {:?}", config);
+                }
+                RelayType::Tcp => {
+                    info!("Running TCP relay with config: {:?}", config);
+                }
+            }
         }
     }
 
