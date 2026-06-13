@@ -213,7 +213,7 @@ tracing-subscriber = "0.3"
 dotenvy = "0.15.7"
 uuid = { version = "1.23.2", features = ["serde", "v4"] }
 
-postcard = { version = "1", features = ["alloc"] }
+postcard = { version = "1", features = ["use-std", "alloc"] }
 bytes = "1.11.1"
 
 [workspace.dependencies.relay_common]

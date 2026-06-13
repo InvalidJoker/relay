@@ -33,7 +33,6 @@ pub struct HttpHostConfig {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-#[serde(tag = "type", content = "config")]
 pub enum HostConfig {
     Tcp(TcpHostConfig),
     Http(HttpHostConfig),

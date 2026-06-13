@@ -1,38 +1,22 @@
 // insipired by https://github.com/ekzhang/bore/blob/main/src/shared.rs
 
-use crate::constants::{MAX_FRAME_LENGTH, NETWORK_TIMEOUT};
-use anyhow::Context;
+use anyhow::{Context, Result};
 use bytes::Bytes;
 use futures_util::{SinkExt, StreamExt};
-use serde::Serialize;
 use serde::de::DeserializeOwned;
+use serde::Serialize;
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::time::timeout;
-use tokio_util::codec::{AnyDelimiterCodec, Framed, FramedParts};
-use tracing::trace;
+use tokio_util::codec::{Framed, FramedParts, LengthDelimitedCodec};
 
-use anyhow::Result;
+use crate::constants::NETWORK_TIMEOUT;
 
-/// A wrapper around a framed stream that uses length-delimited frames and postcard serialization.
-pub struct StreamWorker<U>(Framed<U, AnyDelimiterCodec>);
+/// A wrapper around `postcard` for serialization.
+pub struct StreamWorker<U>(Framed<U, LengthDelimitedCodec>);
 
 impl<U: AsyncRead + AsyncWrite + Unpin> StreamWorker<U> {
     pub fn new(stream: U) -> Self {
-        let codec = AnyDelimiterCodec::new_with_max_length(vec![0], vec![0], MAX_FRAME_LENGTH);
-        Self(Framed::new(stream, codec))
-    }
-
-    /// Read the next null-delimited JSON instruction from a stream.
-    pub async fn recv<T: DeserializeOwned>(&mut self) -> Result<Option<T>> {
-        trace!("waiting to receive json message");
-        if let Some(next_message) = self.0.next().await {
-            let byte_message = next_message.context("frame error, invalid byte length")?;
-            let serialized_obj =
-                serde_json::from_slice(&byte_message).context("unable to parse message")?;
-            Ok(serialized_obj)
-        } else {
-            Ok(None)
-        }
+        Self(Framed::new(stream, LengthDelimitedCodec::new()))
     }
 
     /// Read the next null-delimited JSON instruction, with a default timeout.
@@ -45,15 +29,23 @@ impl<U: AsyncRead + AsyncWrite + Unpin> StreamWorker<U> {
             .context("timed out waiting for initial message")?
     }
 
-    /// Send a null-terminated JSON instruction on a stream.
     pub async fn send<T: Serialize>(&mut self, msg: T) -> Result<()> {
-        trace!("sending json message");
-        self.0.send(serde_json::to_string(&msg)?).await?;
+        let bytes = postcard::to_stdvec(&msg)?;
+        self.0.send(Bytes::from(bytes)).await?;
         Ok(())
     }
 
-    /// Consume this object, returning current buffers and the inner transport.
-    pub fn into_parts(self) -> FramedParts<U, AnyDelimiterCodec> {
+    pub async fn recv<T: DeserializeOwned>(&mut self) -> Result<Option<T>> {
+        match self.0.next().await {
+            Some(frame) => {
+                let bytes = frame?;
+                Ok(Some(postcard::from_bytes(&bytes)?))
+            }
+            None => Ok(None),
+        }
+    }
+
+    pub fn into_parts(self) -> FramedParts<U, LengthDelimitedCodec> {
         self.0.into_parts()
     }
 }
