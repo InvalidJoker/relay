@@ -16,7 +16,7 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use url::Url;
 use uuid::Uuid;
-use relay_common::model::relay::RelayType;
+use relay_common::model::relay::{HostConfig, HttpHostConfig, RelayType, TcpHostConfig};
 
 #[derive(Parser, Debug)]
 #[command(name = "relay")]
@@ -187,14 +187,17 @@ async fn main() -> anyhow::Result<()> {
                 subdomain
             });
 
-            let domain = format!("{}.relay.invalidjoker.dev", subdomain);
+            let host_config = HostConfig::Http(HttpHostConfig {
+                local_port: port,
+                domain: Some(domain),
+                auth: None,
+            });
 
-            info!("Listening on port {port} with subdomain {domain}");
+            let local_host = "localhost";
+            let server = "localhost"; // TODO: ask backend for relay url
 
-            // keep alive until ctrl+c
-            loop {
-                std::thread::park();
-            }
+            let client = Client::new(local_host, port, server, host_config, config.secret).await?;
+            client.listen().await?;
         }
         Commands::Tcp { port, remote_port } => {
             info!("Reaching out to relay on relay.invalidjoker.dev");
@@ -204,7 +207,12 @@ async fn main() -> anyhow::Result<()> {
 
             // TODO: ask backend for relay url + getting the token for the relay (we dont give the real backend token)
 
-            let client = Client::new(local_host, port, server, remote_port, config.secret).await?;
+            let host_config = HostConfig::Tcp(TcpHostConfig {
+                local_port: port,
+                remote_port,
+            });
+
+            let client = Client::new(local_host, port, server, host_config, config.secret).await?;
             client.listen().await?;
         }
         Commands::Run { path } => {

@@ -7,6 +7,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 
 mod auth;
 mod server;
+mod http_proxy;
 /*
 IDEA:
 - relay is the tcp proxy which runs under relay.invalidjoker.dev for example
