@@ -6,7 +6,6 @@ use crate::auth::TokenResponse;
 use crate::client::Client;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use rand::RngExt;
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::path::PathBuf;
@@ -170,28 +169,9 @@ async fn main() -> anyhow::Result<()> {
         Commands::Http { port, subdomain } => {
             info!("Reaching out to relay on relay.invalidjoker.dev");
 
-            let nato_alphabet = vec![
-                "alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel", "india",
-                "juliett", "kilo", "lima", "mike", "november", "oscar", "papa", "quebec", "romeo",
-                "sierra", "tango", "uniform", "victor", "whiskey", "x-ray", "yankee", "zulu",
-            ];
-
-            let mut rng = rand::rng();
-
-            let subdomain = subdomain.unwrap_or_else(|| {
-                let mut subdomain = String::new();
-                for _ in 0..3 {
-                    let word = nato_alphabet[rng.random_range(0..nato_alphabet.len())];
-                    subdomain.push_str(word);
-                }
-                subdomain
-            });
-
-            let domain = format!("{}.relay.invalidjoker.dev", subdomain);
-
             let host_config = HostConfig::Http(HttpHostConfig {
                 local_port: port,
-                domain: Some(domain),
+                domain: subdomain,
                 auth: None,
             });
 

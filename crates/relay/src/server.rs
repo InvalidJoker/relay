@@ -163,13 +163,38 @@ impl Server {
                         }
                     }
                     HostConfig::Http(http) => {
+                        if let Err(err) = self.auth.check_http(&msg.token, http.domain.clone()).await {
+                            warn!(%err, "authentication failed");
+                            stream
+                                .send(RelayMessage::Error(
+                                    "authentication failed".to_string(),
+                                ))
+                                .await?;
+                            return Ok(());
+                        }
+
                         let domain = match http.domain {
-                            Some(d) => d,
+                            Some(d) => {
+                                if d.contains('.') {
+                                    d
+                                } else {
+                                    format!("{}.relay.invalidjoker.dev", d)
+                                }
+                            }
                             None => {
-                                stream.send(RelayMessage::Error("Missing domain".to_string())).await?;
-                                return Ok(());
+                                let nato_alphabet = [
+                                    "alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel", "india",
+                                    "juliett", "kilo", "lima", "mike", "november", "oscar", "papa", "quebec", "romeo",
+                                    "sierra", "tango", "uniform", "victor", "whiskey", "x-ray", "yankee", "zulu",
+                                ];
+                                let mut subdomain = String::new();
+                                for _ in 0..3 {
+                                    subdomain.push_str(nato_alphabet[fastrand::usize(..nato_alphabet.len())]);
+                                }
+                                format!("{}.relay.invalidjoker.dev", subdomain)
                             }
                         };
+
                         info!(?domain, "new http client");
                         let (tx, mut rx) = tokio::sync::mpsc::channel(32);
                         self.http_clients.insert(domain.clone(), tx);
