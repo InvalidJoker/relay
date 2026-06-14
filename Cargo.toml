@@ -187,7 +187,6 @@ big_endian_bytes = "deny"
 host_endian_bytes = "deny"
 little_endian_bytes = "deny"
 
-
 [workspace.dependencies]
 anyhow = "1.0.102"
 reqwest = { version = "0.13.4", features = [ "charset",
@@ -215,7 +214,3 @@ bytes = "1.11.1"
 
 [workspace.dependencies.relay_common]
 path = "crates/common"
-
-[workspace.dependencies.axum]
-version = "0.8.8"
-features = ["json", "macros", "http2", "ws"]

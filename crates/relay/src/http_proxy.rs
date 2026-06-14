@@ -1,7 +1,7 @@
 use anyhow::Result;
 use dashmap::DashMap;
-use http_body_util::combinators::BoxBody;
 use http_body_util::BodyExt;
+use http_body_util::combinators::BoxBody;
 use hyper::body::{Bytes, Incoming};
 use hyper::server::conn::http1;
 use hyper::service::service_fn;
@@ -18,7 +18,10 @@ pub async fn start_http_proxy(
     http_clients: Arc<DashMap<String, tokio::sync::mpsc::Sender<Uuid>>>,
     http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
 ) -> Result<()> {
-    let port: u16 = std::env::var("HTTP_PORT").unwrap_or_else(|_| "80".to_string()).parse().unwrap_or(80);
+    let port: u16 = std::env::var("HTTP_PORT")
+        .unwrap_or_else(|_| "80".to_string())
+        .parse()
+        .unwrap_or(80);
     let listener = TcpListener::bind((bind, port)).await?;
     info!(addr = ?bind, port, "HTTP proxy listening");
 
@@ -39,15 +42,10 @@ pub async fn start_http_proxy(
             let service = service_fn(move |req| {
                 let http_clients = http_clients.clone();
                 let http_tunnels = http_tunnels.clone();
-                async move {
-                    handle_request(req, http_clients, http_tunnels).await
-                }
+                async move { handle_request(req, http_clients, http_tunnels).await }
             });
 
-            if let Err(err) = http1::Builder::new()
-                .serve_connection(io, service)
-                .await
-            {
+            if let Err(err) = http1::Builder::new().serve_connection(io, service).await {
                 error!(%err, "Error serving HTTP connection");
             }
         });
@@ -91,7 +89,7 @@ async fn handle_request(
     };
 
     let io = TokioIo::new(tunnel_stream);
-    
+
     let (mut sender, conn) = match hyper::client::conn::http1::Builder::new()
         .handshake(io)
         .await

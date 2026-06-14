@@ -6,6 +6,7 @@ use crate::auth::TokenResponse;
 use crate::client::Client;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
+use relay_common::model::relay::{HostConfig, HttpHostConfig, RelayType, TcpHostConfig};
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::path::PathBuf;
@@ -14,8 +15,6 @@ use tracing::{error, info};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use url::Url;
-use uuid::Uuid;
-use relay_common::model::relay::{HostConfig, HttpHostConfig, RelayType, TcpHostConfig};
 
 #[derive(Parser, Debug)]
 #[command(name = "relay")]
@@ -50,8 +49,7 @@ enum Commands {
     Run {
         #[arg(short, long)]
         path: PathBuf,
-    }
-    // TODO: run command, run from config
+    }, // TODO: run command, run from config
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

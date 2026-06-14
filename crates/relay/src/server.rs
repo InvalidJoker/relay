@@ -46,12 +46,14 @@ impl Server {
 
     pub async fn listen(self) -> Result<()> {
         let this = Arc::new(self);
-        
+
         let http_clients = Arc::clone(&this.http_clients);
         let http_tunnels = Arc::clone(&this.http_tunnels);
         let bind = this.bind;
         tokio::spawn(async move {
-            if let Err(err) = crate::http_proxy::start_http_proxy(bind, http_clients, http_tunnels).await {
+            if let Err(err) =
+                crate::http_proxy::start_http_proxy(bind, http_clients, http_tunnels).await
+            {
                 warn!(%err, "HTTP proxy exited with error");
             }
         });
@@ -119,9 +121,7 @@ impl Server {
                         if let Err(err) = self.auth.check_tcp(&msg.token, tcp.remote_port).await {
                             warn!(%err, "authentication failed");
                             stream
-                                .send(RelayMessage::Error(
-                                    "authentication failed".to_string(),
-                                ))
+                                .send(RelayMessage::Error("authentication failed".to_string()))
                                 .await?;
                             return Ok(());
                         }
@@ -163,12 +163,12 @@ impl Server {
                         }
                     }
                     HostConfig::Http(http) => {
-                        if let Err(err) = self.auth.check_http(&msg.token, http.domain.clone()).await {
+                        if let Err(err) =
+                            self.auth.check_http(&msg.token, http.domain.clone()).await
+                        {
                             warn!(%err, "authentication failed");
                             stream
-                                .send(RelayMessage::Error(
-                                    "authentication failed".to_string(),
-                                ))
+                                .send(RelayMessage::Error("authentication failed".to_string()))
                                 .await?;
                             return Ok(());
                         }
@@ -183,13 +183,17 @@ impl Server {
                             }
                             None => {
                                 let nato_alphabet = [
-                                    "alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel", "india",
-                                    "juliett", "kilo", "lima", "mike", "november", "oscar", "papa", "quebec", "romeo",
-                                    "sierra", "tango", "uniform", "victor", "whiskey", "x-ray", "yankee", "zulu",
+                                    "alpha", "bravo", "charlie", "delta", "echo", "foxtrot",
+                                    "golf", "hotel", "india", "juliett", "kilo", "lima", "mike",
+                                    "november", "oscar", "papa", "quebec", "romeo", "sierra",
+                                    "tango", "uniform", "victor", "whiskey", "x-ray", "yankee",
+                                    "zulu",
                                 ];
                                 let mut subdomain = String::new();
                                 for _ in 0..3 {
-                                    subdomain.push_str(nato_alphabet[fastrand::usize(..nato_alphabet.len())]);
+                                    subdomain.push_str(
+                                        nato_alphabet[fastrand::usize(..nato_alphabet.len())],
+                                    );
                                 }
                                 format!("{}.relay.invalidjoker.dev", subdomain)
                             }

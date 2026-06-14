@@ -6,8 +6,8 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
 mod auth;
-mod server;
 mod http_proxy;
+mod server;
 /*
 IDEA:
 - relay is the tcp proxy which runs under relay.invalidjoker.dev for example
@@ -55,7 +55,7 @@ async fn main() -> anyhow::Result<()> {
     let backend_url =
         env::var("BACKEND_URL").unwrap_or_else(|_| "http://localhost:5173".to_string());
 
-    let mut server = Server::new(port_range, bind, backend_url);
+    let server = Server::new(port_range, bind, backend_url);
     server.listen().await?;
 
     Ok(())
