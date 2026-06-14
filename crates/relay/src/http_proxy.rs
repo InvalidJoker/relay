@@ -8,7 +8,7 @@ use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper::{Request, Response, StatusCode};
 use hyper_util::rt::TokioIo;
-use relay_common::model::http::HttpAuthConfig;
+use relay_common::model::http::AuthConfig;
 use std::net::IpAddr;
 use std::sync::Arc;
 use tokio::net::{TcpListener, TcpStream};
@@ -17,7 +17,7 @@ use tracing::{error, info, warn};
 use uuid::Uuid;
 
 pub type HttpClientMap =
-    Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<HttpAuthConfig>)>>;
+    Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<AuthConfig>)>>;
 pub type HttpTunnelMap = Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>;
 
 pub async fn start_http_proxy(
@@ -134,7 +134,7 @@ pub async fn start_https_proxy(
     }
 }
 
-fn is_authorized(req: &Request<Incoming>, auth: &HttpAuthConfig) -> bool {
+fn is_authorized(req: &Request<Incoming>, auth: &AuthConfig) -> bool {
     let header = match req.headers().get(hyper::header::AUTHORIZATION) {
         Some(h) => h,
         None => return false,

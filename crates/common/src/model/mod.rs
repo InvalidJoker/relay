@@ -1,8 +1,8 @@
 pub mod http;
 pub mod tcp;
 
-use crate::model::http::HttpHostConfig;
-use crate::model::tcp::TcpHostConfig;
+use crate::model::http::HostConfig as HttpHostConfig;
+use crate::model::tcp::HostConfig as TcpHostConfig;
 use core::fmt;
 use serde::{Deserialize, Serialize};
 

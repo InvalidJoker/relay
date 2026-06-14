@@ -8,8 +8,8 @@ use anyhow::Context;
 use clap::{Parser, Subcommand};
 use relay_common::model::{
     HostConfig, RelayType,
-    http::{HttpAuthConfig, HttpHostConfig},
-    tcp::TcpHostConfig,
+    http::{AuthConfig, HostConfig as HttpHostConfig},
+    tcp::HostConfig as TcpHostConfig,
 };
 use serde::{Deserialize, Serialize};
 use std::env;
@@ -182,7 +182,7 @@ async fn main() -> anyhow::Result<()> {
             password,
         } => {
             let auth = match (username, password) {
-                (Some(u), Some(p)) => Some(HttpAuthConfig {
+                (Some(u), Some(p)) => Some(AuthConfig {
                     username: u,
                     password: p,
                 }),
