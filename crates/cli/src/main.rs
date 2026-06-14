@@ -37,7 +37,14 @@ enum Commands {
         port: u16,
 
         /// Not everybody can select the subdomain they want and also it never needs to be required
+        #[arg(short, long)]
         subdomain: Option<String>,
+
+        #[arg(long, requires = "password")]
+        username: Option<String>,
+
+        #[arg(long, requires = "username")]
+        password: Option<String>,
     },
     Tcp {
         /// The Local port to listen on
@@ -164,13 +171,21 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
         }
-        Commands::Http { port, subdomain } => {
+        Commands::Http { port, subdomain, username, password } => {
             info!("Reaching out to relay on relay.invalidjoker.dev");
+
+            let auth = match (username, password) {
+                (Some(u), Some(p)) => Some(relay_common::model::relay::HttpAuthConfig {
+                    username: u,
+                    password: p,
+                }),
+                _ => None,
+            };
 
             let host_config = HostConfig::Http(HttpHostConfig {
                 local_port: port,
                 domain: subdomain,
-                auth: None,
+                auth,
             });
 
             let local_host = "localhost";

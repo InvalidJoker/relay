@@ -29,7 +29,7 @@ pub struct Server {
     tcp_conns: Arc<DashMap<Uuid, TcpStream>>,
 
     http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
-    http_clients: Arc<DashMap<String, tokio::sync::mpsc::Sender<Uuid>>>,
+    http_clients: Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<relay_common::model::relay::HttpAuthConfig>)>>,
 }
 
 impl Server {
@@ -201,7 +201,7 @@ impl Server {
 
                         info!(?domain, "new http client");
                         let (tx, mut rx) = tokio::sync::mpsc::channel(32);
-                        self.http_clients.insert(domain.clone(), tx);
+                        self.http_clients.insert(domain.clone(), (tx, http.auth));
                         stream.send(RelayMessage::Hello(domain.clone())).await?;
 
                         loop {

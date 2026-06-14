@@ -1200,6 +1200,7 @@ name = "relay"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "base64",
  "dashmap",
  "dotenvy",
  "fastrand",
@@ -1212,6 +1213,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tokio",
+ "tokio-rustls",
  "tracing",
  "tracing-subscriber",
  "uuid",

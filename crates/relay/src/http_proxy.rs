@@ -9,13 +9,15 @@ use hyper::{Request, Response, StatusCode};
 use hyper_util::rt::TokioIo;
 use std::net::IpAddr;
 use std::sync::Arc;
+use base64::Engine;
 use tokio::net::{TcpListener, TcpStream};
 use tracing::{error, info, warn};
 use uuid::Uuid;
+use relay_common::model::relay::HttpAuthConfig;
 
 pub async fn start_http_proxy(
     bind: IpAddr,
-    http_clients: Arc<DashMap<String, tokio::sync::mpsc::Sender<Uuid>>>,
+    http_clients: Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<relay_common::model::relay::HttpAuthConfig>)>>,
     http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
 ) -> Result<()> {
     let port: u16 = std::env::var("HTTP_PORT")
@@ -52,9 +54,43 @@ pub async fn start_http_proxy(
     }
 }
 
+fn is_authorized(req: &Request<Incoming>, auth: &HttpAuthConfig) -> bool {
+    let header = match req.headers().get(hyper::header::AUTHORIZATION) {
+        Some(h) => h,
+        None => return false,
+    };
+
+    let header_str = match header.to_str() {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
+
+    let token = match header_str.strip_prefix("Basic ") {
+        Some(t) => t,
+        None => return false,
+    };
+
+    let decoded = match base64::prelude::BASE64_STANDARD.decode(token) {
+        Ok(d) => d,
+        Err(_) => return false,
+    };
+
+    let decoded_str = match String::from_utf8(decoded) {
+        Ok(s) => s,
+        Err(_) => return false,
+    };
+
+    let (user, pass) = match decoded_str.split_once(':') {
+        Some(parts) => parts,
+        None => return false,
+    };
+
+    user == auth.username && pass == auth.password
+}
+
 async fn handle_request(
     req: Request<Incoming>,
-    http_clients: Arc<DashMap<String, tokio::sync::mpsc::Sender<Uuid>>>,
+    http_clients: Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<relay_common::model::relay::HttpAuthConfig>)>>,
     http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
 ) -> Result<Response<BoxBody<Bytes, hyper::Error>>, hyper::Error> {
     let host = match req.headers().get(hyper::header::HOST) {
@@ -64,12 +100,19 @@ async fn handle_request(
 
     let domain = host.split(':').next().unwrap_or("").to_string();
 
-    let client_tx = match http_clients.get(&domain) {
-        Some(tx) => tx.clone(),
+    let client_entry = match http_clients.get(&domain) {
+        Some(entry) => entry.clone(),
         None => {
             return Ok(not_found());
         }
     };
+    let (client_tx, auth_config) = client_entry;
+
+    if let Some(auth) = auth_config {
+        if !is_authorized(&req, &auth) {
+            return Ok(unauthorized());
+        }
+    }
 
     let id = Uuid::new_v4();
     let (tx, rx) = tokio::sync::oneshot::channel();
@@ -123,6 +166,18 @@ fn not_found() -> Response<BoxBody<Bytes, hyper::Error>> {
         .status(StatusCode::NOT_FOUND)
         .body(
             http_body_util::Full::new(Bytes::from("404 Not Found: Subdomain not registered"))
+                .map_err(|e| match e {})
+                .boxed(),
+        )
+        .unwrap()
+}
+
+fn unauthorized() -> Response<BoxBody<Bytes, hyper::Error>> {
+    Response::builder()
+        .status(StatusCode::UNAUTHORIZED)
+        .header(hyper::header::WWW_AUTHENTICATE, "Basic realm=\"Restricted\"")
+        .body(
+            http_body_util::Full::new(Bytes::from("401 Unauthorized: Invalid credentials"))
                 .map_err(|e| match e {})
                 .boxed(),
         )
