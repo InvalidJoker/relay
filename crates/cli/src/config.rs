@@ -1,5 +1,5 @@
-use serde::{Deserialize, Serialize};
 use relay_common::model::relay::RelayType;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {

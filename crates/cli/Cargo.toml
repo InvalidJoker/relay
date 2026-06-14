@@ -11,12 +11,12 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 url.workspace = true
 uuid.workspace = true
-rand = { version = "0.10.1", features = ["std"] }
-dirs = "6.0.0"
 toml.workspace = true
 serde.workspace = true
 reqwest.workspace = true
 serde_json.workspace = true
+
+dirs = "6.0.0"
 
 [dependencies.clap]
 version = "4.6.1"

@@ -6,7 +6,7 @@ use crate::auth::TokenResponse;
 use crate::client::Client;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use rand::RngExt;
+use relay_common::model::relay::{HostConfig, HttpHostConfig, RelayType, TcpHostConfig};
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::path::PathBuf;
@@ -15,8 +15,6 @@ use tracing::{error, info};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use url::Url;
-use uuid::Uuid;
-use relay_common::model::relay::RelayType;
 
 #[derive(Parser, Debug)]
 #[command(name = "relay")]
@@ -39,7 +37,14 @@ enum Commands {
         port: u16,
 
         /// Not everybody can select the subdomain they want and also it never needs to be required
+        #[arg(short, long)]
         subdomain: Option<String>,
+
+        #[arg(long, requires = "password")]
+        username: Option<String>,
+
+        #[arg(long, requires = "username")]
+        password: Option<String>,
     },
     Tcp {
         /// The Local port to listen on
@@ -51,8 +56,7 @@ enum Commands {
     Run {
         #[arg(short, long)]
         path: PathBuf,
-    }
-    // TODO: run command, run from config
+    }, // TODO: run command, run from config
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -167,44 +171,44 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
         }
-        Commands::Http { port, subdomain } => {
-            info!("Reaching out to relay on relay.invalidjoker.dev");
+        Commands::Http {
+            port,
+            subdomain,
+            username,
+            password,
+        } => {
+            let auth = match (username, password) {
+                (Some(u), Some(p)) => Some(relay_common::model::relay::HttpAuthConfig {
+                    username: u,
+                    password: p,
+                }),
+                _ => None,
+            };
 
-            let nato_alphabet = vec![
-                "alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf", "hotel", "india",
-                "juliett", "kilo", "lima", "mike", "november", "oscar", "papa", "quebec", "romeo",
-                "sierra", "tango", "uniform", "victor", "whiskey", "x-ray", "yankee", "zulu",
-            ];
-
-            let mut rng = rand::rng();
-
-            let subdomain = subdomain.unwrap_or_else(|| {
-                let mut subdomain = String::new();
-                for _ in 0..3 {
-                    let word = nato_alphabet[rng.random_range(0..nato_alphabet.len())];
-                    subdomain.push_str(word);
-                }
-                subdomain
+            let host_config = HostConfig::Http(HttpHostConfig {
+                local_port: port,
+                domain: subdomain,
+                auth,
             });
 
-            let domain = format!("{}.relay.invalidjoker.dev", subdomain);
+            let local_host = "localhost";
+            let server = "localhost"; // TODO: ask backend for relay url
 
-            info!("Listening on port {port} with subdomain {domain}");
-
-            // keep alive until ctrl+c
-            loop {
-                std::thread::park();
-            }
+            let client = Client::new(local_host, port, server, host_config, config.secret).await?;
+            client.listen().await?;
         }
         Commands::Tcp { port, remote_port } => {
-            info!("Reaching out to relay on relay.invalidjoker.dev");
-
             let local_host = "localhost";
             let server = "localhost";
 
             // TODO: ask backend for relay url + getting the token for the relay (we dont give the real backend token)
 
-            let client = Client::new(local_host, port, server, remote_port, config.secret).await?;
+            let host_config = HostConfig::Tcp(TcpHostConfig {
+                local_port: port,
+                remote_port,
+            });
+
+            let client = Client::new(local_host, port, server, host_config, config.secret).await?;
             client.listen().await?;
         }
         Commands::Run { path } => {
