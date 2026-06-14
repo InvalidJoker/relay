@@ -2,7 +2,7 @@ use crate::auth::Authentication;
 use crate::http_proxy::{HttpClientMap, HttpTunnelMap};
 use anyhow::Result;
 use dashmap::DashMap;
-use relay_common::connection::{ClientMessage, RelayMessage};
+use relay_common::messages::{ClientMessage, RelayMessage};
 use relay_common::constants::RELAY_PORT;
 use relay_common::model::relay::HostConfig;
 use relay_common::worker::StreamWorker;

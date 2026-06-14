@@ -30,6 +30,8 @@ export const GET: RequestHandler = async ({ request }) => {
 
     const { relayType, provided } = parsed.data;
 
+    if (provided == null || provided == "") return new Response(); // always allowed
+
     console.log(`Received request for relay type: ${relayType} with provided: ${provided}`);
 
     return new Response();
