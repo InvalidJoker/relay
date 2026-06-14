@@ -18,11 +18,12 @@ pub async fn start_http_proxy(
     http_clients: Arc<DashMap<String, tokio::sync::mpsc::Sender<Uuid>>>,
     http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
 ) -> Result<()> {
-    let listener = TcpListener::bind((bind, 80)).await?;
-    info!(addr = ?bind, "HTTP proxy listening on port 80");
+    let port: u16 = std::env::var("HTTP_PORT").unwrap_or_else(|_| "80".to_string()).parse().unwrap_or(80);
+    let listener = TcpListener::bind((bind, port)).await?;
+    info!(addr = ?bind, port, "HTTP proxy listening");
 
     loop {
-        let (stream, addr) = match listener.accept().await {
+        let (stream, _addr) = match listener.accept().await {
             Ok(res) => res,
             Err(err) => {
                 warn!(%err, "Failed to accept HTTP connection");
@@ -54,7 +55,7 @@ pub async fn start_http_proxy(
 }
 
 async fn handle_request(
-    mut req: Request<Incoming>,
+    req: Request<Incoming>,
     http_clients: Arc<DashMap<String, tokio::sync::mpsc::Sender<Uuid>>>,
     http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
 ) -> Result<Response<BoxBody<Bytes, hyper::Error>>, hyper::Error> {

@@ -187,6 +187,8 @@ async fn main() -> anyhow::Result<()> {
                 subdomain
             });
 
+            let domain = format!("{}.relay.invalidjoker.dev", subdomain);
+
             let host_config = HostConfig::Http(HttpHostConfig {
                 local_port: port,
                 domain: Some(domain),
