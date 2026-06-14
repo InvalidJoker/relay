@@ -1,6 +1,12 @@
-use crate::model::relay::HelloMessage;
+use crate::model::HostConfig;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct HelloMessage {
+    pub token: String,
+    pub host_config: HostConfig,
+}
 
 /// A message from the client on the relay
 #[derive(Debug, Serialize, Deserialize)]

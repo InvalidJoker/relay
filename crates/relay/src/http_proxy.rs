@@ -8,7 +8,7 @@ use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper::{Request, Response, StatusCode};
 use hyper_util::rt::TokioIo;
-use relay_common::model::relay::HttpAuthConfig;
+use relay_common::model::http::HttpAuthConfig;
 use std::net::IpAddr;
 use std::sync::Arc;
 use tokio::net::{TcpListener, TcpStream};

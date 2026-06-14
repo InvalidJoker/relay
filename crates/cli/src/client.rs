@@ -1,8 +1,8 @@
 use anyhow::bail;
 use anyhow::{Context, Result};
-use relay_common::messages::{ClientMessage, RelayMessage};
 use relay_common::constants::{NETWORK_TIMEOUT, RELAY_PORT};
-use relay_common::model::relay::{HelloMessage, HostConfig};
+use relay_common::messages::{ClientMessage, HelloMessage, RelayMessage};
+use relay_common::model::HostConfig;
 use relay_common::worker::StreamWorker;
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;

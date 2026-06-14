@@ -6,7 +6,11 @@ use crate::auth::TokenResponse;
 use crate::client::Client;
 use anyhow::Context;
 use clap::{Parser, Subcommand};
-use relay_common::model::relay::{HostConfig, HttpHostConfig, RelayType, TcpHostConfig};
+use relay_common::model::{
+    HostConfig, RelayType,
+    http::{HttpAuthConfig, HttpHostConfig},
+    tcp::TcpHostConfig,
+};
 use serde::{Deserialize, Serialize};
 use std::env;
 use std::path::PathBuf;
@@ -178,7 +182,7 @@ async fn main() -> anyhow::Result<()> {
             password,
         } => {
             let auth = match (username, password) {
-                (Some(u), Some(p)) => Some(relay_common::model::relay::HttpAuthConfig {
+                (Some(u), Some(p)) => Some(HttpAuthConfig {
                     username: u,
                     password: p,
                 }),

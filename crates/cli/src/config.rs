@@ -1,4 +1,4 @@
-use relay_common::model::relay::RelayType;
+use relay_common::model::RelayType;
 use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
