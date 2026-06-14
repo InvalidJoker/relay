@@ -171,7 +171,12 @@ async fn main() -> anyhow::Result<()> {
                 }
             }
         }
-        Commands::Http { port, subdomain, username, password } => {
+        Commands::Http {
+            port,
+            subdomain,
+            username,
+            password,
+        } => {
             let auth = match (username, password) {
                 (Some(u), Some(p)) => Some(relay_common::model::relay::HttpAuthConfig {
                     username: u,

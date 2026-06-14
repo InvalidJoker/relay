@@ -1,4 +1,5 @@
 use anyhow::Result;
+use base64::Engine;
 use dashmap::DashMap;
 use http_body_util::BodyExt;
 use http_body_util::combinators::BoxBody;
@@ -7,18 +8,17 @@ use hyper::server::conn::http1;
 use hyper::service::service_fn;
 use hyper::{Request, Response, StatusCode};
 use hyper_util::rt::TokioIo;
+use relay_common::model::relay::HttpAuthConfig;
 use std::net::IpAddr;
 use std::sync::Arc;
-use base64::Engine;
 use tokio::net::{TcpListener, TcpStream};
+use tokio_rustls::LazyConfigAcceptor;
 use tracing::{error, info, warn};
 use uuid::Uuid;
-use tokio_rustls::LazyConfigAcceptor;
-use relay_common::model::relay::HttpAuthConfig;
 
 pub async fn start_http_proxy(
     bind: IpAddr,
-    http_clients: Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<relay_common::model::relay::HttpAuthConfig>)>>,
+    http_clients: Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<HttpAuthConfig>)>>,
     http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
 ) -> Result<()> {
     let port: u16 = std::env::var("HTTP_PORT")
@@ -57,7 +57,7 @@ pub async fn start_http_proxy(
 
 pub async fn start_https_proxy(
     bind: IpAddr,
-    http_clients: Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<relay_common::model::relay::HttpAuthConfig>)>>,
+    http_clients: Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<HttpAuthConfig>)>>,
     http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
 ) -> Result<()> {
     let port: u16 = std::env::var("HTTPS_PORT")
@@ -67,17 +67,23 @@ pub async fn start_https_proxy(
     let listener = TcpListener::bind((bind, port)).await?;
     info!(addr = ?bind, port, "HTTPS proxy listening");
 
-    let subject_alt_names = vec!["*.relay.invalidjoker.dev".to_string(), "relay.invalidjoker.dev".to_string()];
+    let subject_alt_names = vec![
+        "*.relay.invalidjoker.dev".to_string(),
+        "relay.invalidjoker.dev".to_string(),
+    ];
     let cert = rcgen::generate_simple_self_signed(subject_alt_names)?;
     let cert_der = cert.cert.der().to_vec();
     let priv_key_der = cert.signing_key.serialize_der();
-    
-    let priv_key = rustls_pki_types::PrivateKeyDer::try_from(priv_key_der).map_err(|e| anyhow::anyhow!("Invalid private key: {}", e))?;
+
+    let priv_key = rustls_pki_types::PrivateKeyDer::try_from(priv_key_der)
+        .map_err(|e| anyhow::anyhow!("Invalid private key: {}", e))?;
     let cert_chain = vec![rustls_pki_types::CertificateDer::from(cert_der).into_owned()];
 
-    let server_config = Arc::new(rustls::ServerConfig::builder()
-        .with_no_client_auth()
-        .with_single_cert(cert_chain, priv_key)?);
+    let server_config = Arc::new(
+        rustls::ServerConfig::builder()
+            .with_no_client_auth()
+            .with_single_cert(cert_chain, priv_key)?,
+    );
 
     loop {
         let (stream, _addr) = match listener.accept().await {
@@ -101,7 +107,7 @@ pub async fn start_https_proxy(
                     return;
                 }
             };
-            
+
             let stream = match start.into_stream(server_config).await {
                 Ok(stream) => stream,
                 Err(err) => {
@@ -160,7 +166,15 @@ fn is_authorized(req: &Request<Incoming>, auth: &HttpAuthConfig) -> bool {
 
 async fn handle_request(
     req: Request<Incoming>,
-    http_clients: Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<relay_common::model::relay::HttpAuthConfig>)>>,
+    http_clients: Arc<
+        DashMap<
+            String,
+            (
+                tokio::sync::mpsc::Sender<Uuid>,
+                Option<relay_common::model::relay::HttpAuthConfig>,
+            ),
+        >,
+    >,
     http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
 ) -> Result<Response<BoxBody<Bytes, hyper::Error>>, hyper::Error> {
     let host = match req.headers().get(hyper::header::HOST) {
@@ -245,7 +259,10 @@ fn not_found() -> Response<BoxBody<Bytes, hyper::Error>> {
 fn unauthorized() -> Response<BoxBody<Bytes, hyper::Error>> {
     Response::builder()
         .status(StatusCode::UNAUTHORIZED)
-        .header(hyper::header::WWW_AUTHENTICATE, "Basic realm=\"Restricted\"")
+        .header(
+            hyper::header::WWW_AUTHENTICATE,
+            "Basic realm=\"Restricted\"",
+        )
         .body(
             http_body_util::Full::new(Bytes::from("401 Unauthorized: Invalid credentials"))
                 .map_err(|e| match e {})

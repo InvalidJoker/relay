@@ -25,11 +25,22 @@ pub struct Server {
 
     auth: Authentication,
 
+    /// Public URL
+    pub_url: String,
+
     /// Concurrent map of IDs to incoming connections.
     tcp_conns: Arc<DashMap<Uuid, TcpStream>>,
 
     http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
-    http_clients: Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<relay_common::model::relay::HttpAuthConfig>)>>,
+    http_clients: Arc<
+        DashMap<
+            String,
+            (
+                tokio::sync::mpsc::Sender<Uuid>,
+                Option<relay_common::model::relay::HttpAuthConfig>,
+            ),
+        >,
+    >,
 }
 
 impl Server {
@@ -41,6 +52,8 @@ impl Server {
             tcp_conns: Arc::new(DashMap::new()),
             http_tunnels: Arc::new(DashMap::new()),
             http_clients: Arc::new(DashMap::new()),
+            pub_url: std::env::var("PUBLIC_URL")
+                .unwrap_or_else(|_| "relay.invalidjoker.dev".to_string()),
         }
     }
 
@@ -184,7 +197,7 @@ impl Server {
                                 if d.contains('.') {
                                     d
                                 } else {
-                                    format!("{}.relay.invalidjoker.dev", d)
+                                    format!("{}.{}", d, self.pub_url)
                                 }
                             }
                             None => {
@@ -201,7 +214,7 @@ impl Server {
                                         nato_alphabet[fastrand::usize(..nato_alphabet.len())],
                                     );
                                 }
-                                format!("{}.relay.invalidjoker.dev", subdomain)
+                                format!("{}.{}", subdomain, self.pub_url)
                             }
                         };
 
