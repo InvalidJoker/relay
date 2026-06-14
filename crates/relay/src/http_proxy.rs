@@ -16,10 +16,14 @@ use tokio_rustls::LazyConfigAcceptor;
 use tracing::{error, info, warn};
 use uuid::Uuid;
 
+pub type HttpClientMap =
+    Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<HttpAuthConfig>)>>;
+pub type HttpTunnelMap = Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>;
+
 pub async fn start_http_proxy(
     bind: IpAddr,
-    http_clients: Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<HttpAuthConfig>)>>,
-    http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
+    http_clients: HttpClientMap,
+    http_tunnels: HttpTunnelMap,
 ) -> Result<()> {
     let port: u16 = std::env::var("HTTP_PORT")
         .unwrap_or_else(|_| "80".to_string())
@@ -57,8 +61,8 @@ pub async fn start_http_proxy(
 
 pub async fn start_https_proxy(
     bind: IpAddr,
-    http_clients: Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<HttpAuthConfig>)>>,
-    http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
+    http_clients: HttpClientMap,
+    http_tunnels: HttpTunnelMap,
 ) -> Result<()> {
     let port: u16 = std::env::var("HTTPS_PORT")
         .unwrap_or_else(|_| "443".to_string())
@@ -166,16 +170,8 @@ fn is_authorized(req: &Request<Incoming>, auth: &HttpAuthConfig) -> bool {
 
 async fn handle_request(
     req: Request<Incoming>,
-    http_clients: Arc<
-        DashMap<
-            String,
-            (
-                tokio::sync::mpsc::Sender<Uuid>,
-                Option<relay_common::model::relay::HttpAuthConfig>,
-            ),
-        >,
-    >,
-    http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
+    http_clients: HttpClientMap,
+    http_tunnels: HttpTunnelMap,
 ) -> Result<Response<BoxBody<Bytes, hyper::Error>>, hyper::Error> {
     let host = match req.headers().get(hyper::header::HOST) {
         Some(host) => host.to_str().unwrap_or(""),
@@ -192,10 +188,10 @@ async fn handle_request(
     };
     let (client_tx, auth_config) = client_entry;
 
-    if let Some(auth) = auth_config {
-        if !is_authorized(&req, &auth) {
-            return Ok(unauthorized());
-        }
+    if let Some(auth) = auth_config
+        && !is_authorized(&req, &auth)
+    {
+        return Ok(unauthorized());
     }
 
     let id = Uuid::new_v4();

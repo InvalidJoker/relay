@@ -1,4 +1,5 @@
 use crate::auth::Authentication;
+use crate::http_proxy::{HttpClientMap, HttpTunnelMap};
 use anyhow::Result;
 use dashmap::DashMap;
 use relay_common::connection::{ClientMessage, RelayMessage};
@@ -31,16 +32,8 @@ pub struct Server {
     /// Concurrent map of IDs to incoming connections.
     tcp_conns: Arc<DashMap<Uuid, TcpStream>>,
 
-    http_tunnels: Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>,
-    http_clients: Arc<
-        DashMap<
-            String,
-            (
-                tokio::sync::mpsc::Sender<Uuid>,
-                Option<relay_common::model::relay::HttpAuthConfig>,
-            ),
-        >,
-    >,
+    http_tunnels: HttpTunnelMap,
+    http_clients: HttpClientMap,
 }
 
 impl Server {
