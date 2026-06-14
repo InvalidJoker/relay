@@ -34,6 +34,7 @@ impl Client {
         host_config: HostConfig,
         secret: String,
     ) -> Result<Self> {
+        info!("Reaching out to relay on {to}...");
         let mut stream = StreamWorker::new(connect_with_timeout(to, RELAY_PORT).await?);
 
         let msg = HelloMessage {

@@ -172,8 +172,6 @@ async fn main() -> anyhow::Result<()> {
             }
         }
         Commands::Http { port, subdomain, username, password } => {
-            info!("Reaching out to relay on relay.invalidjoker.dev");
-
             let auth = match (username, password) {
                 (Some(u), Some(p)) => Some(relay_common::model::relay::HttpAuthConfig {
                     username: u,
@@ -195,8 +193,6 @@ async fn main() -> anyhow::Result<()> {
             client.listen().await?;
         }
         Commands::Tcp { port, remote_port } => {
-            info!("Reaching out to relay on relay.invalidjoker.dev");
-
             let local_host = "localhost";
             let server = "localhost";
 
