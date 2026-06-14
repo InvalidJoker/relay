@@ -16,6 +16,11 @@ pub(crate) struct TokenResponse {
     pub(crate) error: Option<String>,
 }
 
+#[derive(serde::Deserialize)]
+pub(crate) struct RelayInfoResponse {
+    pub(crate) relay_url: String,
+}
+
 pub(crate) async fn request_device_code(
     server: Url,
     client: &Client,
@@ -29,6 +34,20 @@ pub(crate) async fn request_device_code(
         .send()
         .await?
         .json::<DeviceCodeResponse>()
+        .await?;
+
+    Ok(response)
+}
+
+pub(crate) async fn get_relay_info(
+    server: Url,
+    client: &Client,
+) -> anyhow::Result<RelayInfoResponse> {
+    let response = client
+        .get(server.join("/api/internal/info")?)
+        .send()
+        .await?
+        .json::<RelayInfoResponse>()
         .await?;
 
     Ok(response)

@@ -30,12 +30,12 @@ impl Client {
     pub async fn new(
         local_host: &str,
         local_port: u16,
-        to: &str,
+        to: String,
         host_config: HostConfig,
         secret: String,
     ) -> Result<Self> {
         info!("Reaching out to relay on {to}...");
-        let mut stream = StreamWorker::new(connect_with_timeout(to, RELAY_PORT).await?);
+        let mut stream = StreamWorker::new(connect_with_timeout(to.as_str(), RELAY_PORT).await?);
 
         let msg = HelloMessage {
             token: secret,

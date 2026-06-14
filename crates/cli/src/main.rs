@@ -104,10 +104,10 @@ async fn main() -> anyhow::Result<()> {
         secret: String::new(),
     }); // the default config is only used for login, so it's fine to have an empty secret
 
+    let client = reqwest::Client::new();
+
     match args.command {
         Commands::Login { server } => {
-            let client = reqwest::Client::new();
-
             let server =
                 server.unwrap_or_else(|| Url::parse("https://relay.invalidjoker.dev").unwrap());
 
@@ -181,6 +181,10 @@ async fn main() -> anyhow::Result<()> {
             username,
             password,
         } => {
+            let relay_info = auth::get_relay_info(config.server.clone(), &client)
+                .await
+                .context("Failed to get relay info")?;
+
             let auth = match (username, password) {
                 (Some(u), Some(p)) => Some(AuthConfig {
                     username: u,
@@ -195,24 +199,34 @@ async fn main() -> anyhow::Result<()> {
                 auth,
             });
 
-            let local_host = "localhost";
-            let server = "localhost"; // TODO: ask backend for relay url
-
-            let client = Client::new(local_host, port, server, host_config, config.secret).await?;
+            let client = Client::new(
+                "localhost",
+                port,
+                relay_info.relay_url,
+                host_config,
+                config.secret,
+            )
+            .await?;
             client.listen().await?;
         }
         Commands::Tcp { port, remote_port } => {
-            let local_host = "localhost";
-            let server = "localhost";
-
-            // TODO: ask backend for relay url + getting the token for the relay (we dont give the real backend token)
+            let relay_info = auth::get_relay_info(config.server.clone(), &client)
+                .await
+                .context("Failed to get relay info")?;
 
             let host_config = HostConfig::Tcp(TcpHostConfig {
                 local_port: port,
                 remote_port,
             });
 
-            let client = Client::new(local_host, port, server, host_config, config.secret).await?;
+            let client = Client::new(
+                "localhost",
+                port,
+                relay_info.relay_url,
+                host_config,
+                config.secret,
+            )
+            .await?;
             client.listen().await?;
         }
         Commands::Run { path } => {
