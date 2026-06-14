@@ -15,7 +15,7 @@ pub struct TcpHostConfig {
     pub remote_port: Option<u16>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HttpAuthConfig {
     pub username: String,
     pub password: String,

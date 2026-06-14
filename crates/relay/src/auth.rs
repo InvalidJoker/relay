@@ -21,7 +21,8 @@ impl Authentication {
         relay_type: RelayType,
     ) -> anyhow::Result<()> {
         let url = format!("{}/api/internal/auth/relay", self.host);
-        let resp = self.client
+        let resp = self
+            .client
             .get(&url)
             .header("Authorization", format!("Bearer {}", token))
             .header("X-Provided", provided.unwrap_or_default())

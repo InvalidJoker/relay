@@ -2,7 +2,7 @@ use anyhow::bail;
 use anyhow::{Context, Result};
 use relay_common::connection::{ClientMessage, RelayMessage};
 use relay_common::constants::{NETWORK_TIMEOUT, RELAY_PORT};
-use relay_common::model::relay::{HelloMessage, HostConfig, TcpHostConfig};
+use relay_common::model::relay::{HelloMessage, HostConfig};
 use relay_common::worker::StreamWorker;
 use std::sync::Arc;
 use tokio::io::AsyncWriteExt;
@@ -31,28 +31,26 @@ impl Client {
         local_host: &str,
         local_port: u16,
         to: &str,
-        remote_port: Option<u16>,
+        host_config: HostConfig,
         secret: String,
     ) -> Result<Self> {
+        info!("Reaching out to relay on {to}...");
         let mut stream = StreamWorker::new(connect_with_timeout(to, RELAY_PORT).await?);
 
         let msg = HelloMessage {
             token: secret,
-            host_config: HostConfig::Tcp(TcpHostConfig {
-                local_port,
-                remote_port,
-            }),
+            host_config,
         };
 
         stream.send(ClientMessage::Hello(msg)).await?;
-        let remote_port = match stream.recv_timeout().await? {
-            Some(RelayMessage::Hello(remote_port)) => remote_port,
+        let remote_target = match stream.recv_timeout().await? {
+            Some(RelayMessage::Hello(remote_target)) => remote_target,
             Some(RelayMessage::Error(message)) => bail!("server error: {message}"),
             Some(_) => bail!("unexpected initial non-hello message"),
             None => bail!("unexpected EOF"),
         };
-        info!(remote_port, "connected to server");
-        info!("listening at {to}:{remote_port}");
+        info!("connected to server");
+        info!("listening at {remote_target} -> {local_host}:{local_port}");
 
         Ok(Client {
             conn: Some(stream),
