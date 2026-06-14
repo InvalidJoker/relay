@@ -47,14 +47,20 @@ impl Server {
     pub async fn listen(self) -> Result<()> {
         let this = Arc::new(self);
 
-        let http_clients = Arc::clone(&this.http_clients);
-        let http_tunnels = Arc::clone(&this.http_tunnels);
+        let hc = Arc::clone(&this.http_clients);
+        let ht = Arc::clone(&this.http_tunnels);
         let bind = this.bind;
         tokio::spawn(async move {
-            if let Err(err) =
-                crate::http_proxy::start_http_proxy(bind, http_clients, http_tunnels).await
-            {
+            if let Err(err) = crate::http_proxy::start_http_proxy(bind, hc, ht).await {
                 warn!(%err, "HTTP proxy exited with error");
+            }
+        });
+
+        let hc2 = Arc::clone(&this.http_clients);
+        let ht2 = Arc::clone(&this.http_tunnels);
+        tokio::spawn(async move {
+            if let Err(err) = crate::http_proxy::start_https_proxy(bind, hc2, ht2).await {
+                warn!(%err, "HTTPS proxy exited with error");
             }
         });
 
