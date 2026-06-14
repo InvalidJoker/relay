@@ -6,6 +6,11 @@ pub struct Authentication {
     client: Client,
 }
 
+#[derive(serde::Deserialize)]
+pub(crate) struct CheckResponse {
+    pub(crate) result: String,
+}
+
 impl Authentication {
     pub fn new(host: String) -> Self {
         Self {
@@ -19,7 +24,7 @@ impl Authentication {
         token: &str,
         provided: Option<String>,
         relay_type: RelayType,
-    ) -> anyhow::Result<()> {
+    ) -> anyhow::Result<String> {
         let url = format!("{}/api/internal/auth/relay", self.host);
         let resp = self
             .client
@@ -31,7 +36,8 @@ impl Authentication {
             .await?;
 
         if resp.status().is_success() {
-            Ok(())
+            let check_response: CheckResponse = resp.json().await?;
+            Ok(check_response.result)
         } else {
             Err(anyhow::anyhow!(
                 "Authentication failed with response: {}",
@@ -40,12 +46,12 @@ impl Authentication {
         }
     }
 
-    pub async fn check_tcp(&self, token: &str, port: Option<u16>) -> anyhow::Result<()> {
+    pub async fn check_tcp(&self, token: &str, port: Option<u16>) -> anyhow::Result<String> {
         self.check(token, port.map(|p| p.to_string()), RelayType::Tcp)
             .await
     }
 
-    pub async fn check_http(&self, token: &str, domain: Option<String>) -> anyhow::Result<()> {
+    pub async fn check_http(&self, token: &str, domain: Option<String>) -> anyhow::Result<String> {
         self.check(token, domain, RelayType::Http).await
     }
 }
