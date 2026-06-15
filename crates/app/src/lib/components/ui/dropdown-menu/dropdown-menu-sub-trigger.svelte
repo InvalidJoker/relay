@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { DropdownMenu as DropdownMenuPrimitive } from "bits-ui";
-	import CaretRightIcon from 'phosphor-svelte/lib/CaretRight';
+	import ChevronRightIcon from '@lucide/svelte/icons/chevron-right';
 	import { cn } from "$lib/utils.js";
 
 	let {
@@ -25,5 +25,5 @@
 	{...restProps}
 >
 	{@render children?.()}
-	<CaretRightIcon class="ml-auto" />
+	<ChevronRightIcon class="ml-auto" />
 </DropdownMenuPrimitive.SubTrigger>
