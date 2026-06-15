@@ -5,6 +5,7 @@ import { z } from "zod";
 import {db} from "$lib/server/db";
 import {and, eq} from "drizzle-orm";
 import {persistentPort, customDomain, subdomain} from "$lib/server/db/relay.schema";
+import { env as envPublic } from "$env/dynamic/public";
 
 const RelayTypeSchema = z.enum(["tcp", "http"]);
 
@@ -13,7 +14,7 @@ const HeadersSchema = z.object({
     provided: z.string().optional(),
 });
 
-const relayPubDomain = process.env.RELAY_PUBLIC_DOMAIN || "relay.invalidjoker.dev";
+const relayPubDomain = envPublic.PUBLIC_RELAY_DOMAIN || "relay.invalidjoker.dev";
 
 export const GET: RequestHandler = async ({ request }) => {
     const session = await auth.api.getSession({
