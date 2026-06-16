@@ -34,16 +34,15 @@ export const GET: RequestHandler = async ({ request }) => {
         throw error(400, JSON.stringify(z.prettifyError(parsed.error)));
     }
 
-    const { relayType, provided } = parsed.data;
-
-    if (provided == null || provided == "") return new Response(); // always allowed
-
+    const {relayType, provided} = parsed.data;
 
     console.log(`Received request for relay type: ${relayType} with provided: ${provided}`);
 
     let result: string | null = null;
 
     if (relayType === "tcp") {
+        if (provided == null || provided == "") return new Response(); // always allowed
+
         let port: number;
         try {
             port = parseInt(provided, 10);
@@ -63,7 +62,7 @@ export const GET: RequestHandler = async ({ request }) => {
         }
 
         result = port.toString();
-    } else if (relayType === "http") {
+    } else if (relayType === "http" && (provided != null && provided != "")) {
         let hostname: string;
         try {
             hostname = provided;
@@ -99,6 +98,39 @@ export const GET: RequestHandler = async ({ request }) => {
 
             result = domainRecord.domain;
         }
+    } else if (relayType === "http") {
+        const adjectives = [
+            "swift", "bright", "silent", "rapid", "lucky",
+            "crimson", "golden", "frosty", "stellar", "shadow"
+        ];
+
+        const nouns = [
+            "fox", "wolf", "hawk", "river", "cloud",
+            "forest", "comet", "flame", "storm", "peak"
+        ];
+
+        let randomSubdomain: string | null = null;
+
+        for (let i = 0; i < 5; i++) {
+            const candidate =
+                `${adjectives[Math.floor(Math.random() * adjectives.length)]}` +
+                `${nouns[Math.floor(Math.random() * nouns.length)]}`;
+
+            const existing = await db.query.subdomain.findFirst({
+                where: eq(subdomain.subdomain, candidate)
+            });
+
+            if (!existing) {
+                randomSubdomain = candidate;
+                break;
+            }
+        }
+
+        if (!randomSubdomain) {
+            throw error(500, "Failed to generate unique subdomain after 5 attempts");
+        }
+
+        result = `${randomSubdomain}.${relayPubDomain}`;
     } else {
         throw error(400, 'Invalid relay type');
     }

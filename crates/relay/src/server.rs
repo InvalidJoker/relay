@@ -26,9 +26,6 @@ pub struct Server {
 
     auth: Authentication,
 
-    /// Public URL
-    pub_url: String,
-
     /// Concurrent map of IDs to incoming connections.
     tcp_conns: Arc<DashMap<Uuid, TcpStream>>,
 
@@ -45,8 +42,6 @@ impl Server {
             tcp_conns: Arc::new(DashMap::new()),
             http_tunnels: Arc::new(DashMap::new()),
             http_clients: Arc::new(DashMap::new()),
-            pub_url: std::env::var("PUBLIC_URL")
-                .unwrap_or_else(|_| "relay.invalidjoker.dev".to_string()),
         }
     }
 
@@ -175,9 +170,9 @@ impl Server {
                         }
                     }
                     HostConfig::Http(http) => {
-                        if let Err(err) =
-                            self.auth.check_http(&msg.token, http.domain.clone()).await
-                        {
+                        let auth_result =
+                            self.auth.check_http(&msg.token, http.domain.clone()).await;
+                        if let Err(err) = auth_result {
                             warn!(%err, "authentication failed");
                             stream
                                 .send(RelayMessage::Error("authentication failed".to_string()))
@@ -185,31 +180,7 @@ impl Server {
                             return Ok(());
                         }
 
-                        let domain = match http.domain {
-                            Some(d) => {
-                                if d.contains('.') {
-                                    d
-                                } else {
-                                    format!("{}.{}", d, self.pub_url)
-                                }
-                            }
-                            None => {
-                                let nato_alphabet = [
-                                    "alpha", "bravo", "charlie", "delta", "echo", "foxtrot",
-                                    "golf", "hotel", "india", "juliett", "kilo", "lima", "mike",
-                                    "november", "oscar", "papa", "quebec", "romeo", "sierra",
-                                    "tango", "uniform", "victor", "whiskey", "x-ray", "yankee",
-                                    "zulu",
-                                ];
-                                let mut subdomain = String::new();
-                                for _ in 0..3 {
-                                    subdomain.push_str(
-                                        nato_alphabet[fastrand::usize(..nato_alphabet.len())],
-                                    );
-                                }
-                                format!("{}.{}", subdomain, self.pub_url)
-                            }
-                        };
+                        let domain = auth_result?;
 
                         info!(?domain, "new http client");
                         let (tx, mut rx) = tokio::sync::mpsc::channel(32);
@@ -259,7 +230,7 @@ impl Server {
                         let mut parts = stream.into_parts();
                         debug_assert!(parts.write_buf.is_empty(), "framed write buffer not empty");
                         stream2.write_all(&parts.read_buf).await?;
-                        tokio::io::copy_bidirectional(&mut parts.io, &mut stream2).await?;
+                        io::copy_bidirectional(&mut parts.io, &mut stream2).await?;
                     }
                     None => warn!(%id, "missing connection"),
                 }
