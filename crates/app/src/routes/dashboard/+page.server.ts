@@ -7,9 +7,6 @@ import { persistentPort, customDomain, subdomain } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
 
 export const load: PageServerLoad = async (event) => {
-	if (!event.locals.user) {
-		return redirect(302, '/login');
-	}
 
 	const userId = event.locals.user.id;
 	
