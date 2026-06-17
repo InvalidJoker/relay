@@ -123,7 +123,7 @@
 
 		<div class="ml-auto hidden items-center gap-2 md:flex">
 			{#if data.user}
-				<Button href="/dashboard" size="sm" class="gap-1.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:opacity-90 border-0">
+				<Button href="/dashboard" size="sm">
 					<LayoutDashboard size={14} />
 					Dashboard
 				</Button>
@@ -137,7 +137,7 @@
 				</form>
 			{:else}
 				<Button variant="ghost" href="/login" size="sm">Sign in</Button>
-				<Button href="/register" size="sm" class="gap-1.5 bg-gradient-to-r from-indigo-500 to-violet-600 hover:opacity-90 border-0">
+				<Button href="/register" size="sm">
 					Get Started
 					<ArrowRight size={14} />
 				</Button>
@@ -170,12 +170,12 @@
 				</Button>
 				<Separator class="my-2 opacity-30" />
 				{#if data.user}
-					<Button href="/dashboard" class="gap-2 bg-gradient-to-r from-indigo-500 to-violet-600 border-0">
+					<Button href="/dashboard">
 						<LayoutDashboard size={15} /> Dashboard
 					</Button>
 				{:else}
 					<Button variant="outline" href="/login" class="mb-1">Sign in</Button>
-					<Button href="/register" class="gap-2 bg-gradient-to-r from-indigo-500 to-violet-600 border-0">
+					<Button href="/register">
 						Get Started <ArrowRight size={15} />
 					</Button>
 				{/if}
@@ -210,7 +210,6 @@
 				<Button
 					href="/dashboard"
 					size="lg"
-					class="gap-2 border-0 bg-gradient-to-r from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30 hover:opacity-90 hover:-translate-y-0.5 transition-all"
 				>
 					<LayoutDashboard size={18} />
 					Go to Dashboard
@@ -228,7 +227,6 @@
 				<Button
 					href="/register"
 					size="lg"
-					class="gap-2 border-0 bg-gradient-to-r from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/30 hover:opacity-90 hover:-translate-y-0.5 transition-all"
 				>
 					Start tunneling free
 					<ArrowRight size={18} />
@@ -394,7 +392,6 @@
 				<Button
 					href="/dashboard"
 					size="lg"
-					class="gap-2 border-0 bg-gradient-to-r from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25 hover:opacity-90"
 				>
 					<LayoutDashboard size={18} />
 					Go to Dashboard
@@ -403,7 +400,6 @@
 				<Button
 					href="/register"
 					size="lg"
-					class="gap-2 border-0 bg-gradient-to-r from-indigo-500 to-violet-600 shadow-lg shadow-indigo-500/25 hover:opacity-90"
 				>
 					Get started for free
 					<ArrowRight size={18} />
