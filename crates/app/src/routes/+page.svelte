@@ -84,14 +84,14 @@
 		{
 			number: '02',
 			title: 'Connect',
-			description: 'Forward any local port through the relay tunnel.',
-			code: 'relay tunnel --port 3000'
+			description: 'Forward any local port to the internet with one command.',
+			code: 'relay http 8080'
 		},
 		{
 			number: '03',
 			title: 'Share',
-			description: 'Instantly share the persistent URL with anyone.',
-			code: `→ myapp.{env.PUBLIC_RELAY_DOMAIN}`
+			description: 'Instantly share the URL with anyone.',
+			code: `→ myapp.${env.PUBLIC_RELAY_DOMAIN}`
 		}
 	];
 </script>
@@ -241,36 +241,6 @@
 					View on GitHub
 				</Button>
 			{/if}
-		</div>
-
-		<!-- Terminal -->
-		<div class="terminal w-full max-w-lg">
-			<div class="terminal-header">
-				<span class="terminal-dot bg-[#ff5f57]"></span>
-				<span class="terminal-dot bg-[#ffbd2e]"></span>
-				<span class="terminal-dot bg-[#28ca41]"></span>
-				<span class="ml-auto font-mono text-xs text-white/20">relay — bash</span>
-			</div>
-			<div class="terminal-body font-mono text-sm">
-				<div class="terminal-line opacity-100">
-					<span class="text-indigo-400 font-bold">$ </span><span class="text-slate-200">relay tunnel --port 3000</span>
-				</div>
-				<div class="terminal-line terminal-fade" style="animation-delay:0.5s">
-					<span class="text-white/40">  Connecting to {env.PUBLIC_RELAY_DOMAIN}...</span>
-				</div>
-				<div class="terminal-line terminal-fade" style="animation-delay:1s">
-					<span class="text-green-400">  ✓ Tunnel established</span>
-				</div>
-				<div class="terminal-line terminal-fade" style="animation-delay:1.8s">
-					<span class="text-white/40">  Local: &nbsp; http://localhost:3000</span>
-				</div>
-				<div class="terminal-line terminal-fade" style="animation-delay:2.1s">
-					<span class="text-white/40">  Public: </span><span class="text-indigo-300 font-semibold">https://myapp.{env.PUBLIC_RELAY_DOMAIN}</span>
-				</div>
-				<div class="terminal-line terminal-fade" style="animation-delay:2.6s">
-					<span class="text-white/40">  Forwarding requests</span><span class="animate-[blink_1s_step-end_infinite] text-indigo-400">▋</span>
-				</div>
-			</div>
 		</div>
 	</div>
 </section>
