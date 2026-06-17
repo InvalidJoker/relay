@@ -9,6 +9,7 @@
 	import * as Table from '$lib/components/ui/table';
 	import { Plug, Globe, Link2, Plus, Trash2, AlertCircle } from 'lucide-svelte';
 	import { env } from '$env/dynamic/public';
+	import {Alert} from "$lib/components/ui/alert";
 
 	let { data, form }: { data: PageServerData; form: ActionData } = $props();
 
@@ -38,6 +39,10 @@
 </script>
 
 <div class="page">
+	<Alert variant="destructive">
+		<AlertCircle size={16} />
+		This dashboard is temporary, and will be replaced soon
+	</Alert>
 	<!-- Header -->
 	<div class="page-header">
 		<div>
