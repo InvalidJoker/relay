@@ -1,27 +1,50 @@
-# syntax=docker/dockerfile:1
+# syntax = docker/dockerfile:1
+# Adjust BUN_VERSION as desired
 ARG BUN_VERSION=1.3.14
+FROM oven/bun:${BUN_VERSION}-slim AS base
 
-FROM oven/bun:${BUN_VERSION}-alpine AS builder
-WORKDIR /home/bun/app
+LABEL fly_launch_runtime="SvelteKit"
 
-COPY package.json bun.lock ./
-RUN bun install --frozen-lockfile
+# SvelteKit app lives here
+WORKDIR /app
 
+# Set production environment
+ENV NODE_ENV="production"
+
+# Throw-away build stage to reduce size of final image
+FROM base AS build
+
+# Install packages needed to build node modules
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y build-essential pkg-config python-is-python3
+
+# Install node modules
+COPY bun.lock package.json ./
+RUN bun install
+
+# Copy application code
 COPY . .
-RUN bun run build
 
-FROM oven/bun:${BUN_VERSION}-alpine AS production
-WORKDIR /home/bun/app
+# Temporary values only used during build
+ENV DATABASE_URL="postgresql://build:build@localhost:5432/build"
+ENV AUTH_SECRET="building"
 
-ENV NODE_ENV=production
-ENV HOST=0.0.0.0
-ENV PORT=3000
+# Build application
+RUN bun --bun run build
 
-COPY --from=builder --chown=bun:bun /home/bun/app/build ./
+# Remove development dependencies
+RUN rm -rf node_modules && \
+    bun install --ci
 
-RUN chown -R bun:bun /home/bun/app
 
-USER bun
+# Final stage for app image
+FROM base
+
+# Copy built application
+COPY --from=build /app/build /app/build
+COPY --from=build /app/node_modules /app/node_modules
+COPY --from=build /app/package.json /app
+
+# Start the server by default, this can be overwritten at runtime
 EXPOSE 3000
-
-CMD ["bun", "./index.js"]
+CMD [ "bun", "./build/index.js" ]
