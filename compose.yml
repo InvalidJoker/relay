@@ -1,0 +1,43 @@
+networks:
+  proxiable:
+    external: true
+
+services:
+  postgres:
+    image: postgres:alpine
+    environment:
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=backend
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  app:
+    image: ghcr.io/invalidjoker/relay-app:main
+    container_name: relay-app
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/backend
+      - ORIGIN=https://relay.koder.wtf
+      - BETTER_AUTH_SECRET="YOUR_SECRET_HERE"
+      - PUBLIC_RELAY_DOMAIN=relay.koder.wtf
+      - PUBLIC_TCP_DOMAIN=tcp.koder.wtf
+      - RELAY_URL=relay.koder.wtf
+    networks:
+      - proxiable
+
+  relay:
+    image: ghcr.io/invalidjoker/relay-relay:main
+    container_name: relay
+    restart: unless-stopped
+    environment:
+      - BACKEND_URL=https://relay.koder.wtf
+    ports:
+      - "2550:2550/tcp"
+      - "10000-20000:10000-20000/tcp"
+    networks:
+      - proxiable
+
+volumes:
+  postgres_data:
