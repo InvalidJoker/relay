@@ -125,13 +125,17 @@ impl Server {
             Some(ClientMessage::Hello(msg)) => {
                 match msg.host_config {
                     HostConfig::Tcp(tcp) => {
-                        if let Err(err) = self.auth.check_tcp(&msg.token, tcp.remote_port).await {
+                        let auth_result =
+                            self.auth.check_tcp(&msg.token, tcp.remote_port).await;
+                        if let Err(err) = auth_result {
                             warn!(%err, "authentication failed");
                             stream
                                 .send(RelayMessage::Error("authentication failed".to_string()))
                                 .await?;
                             return Ok(());
                         }
+
+                        let pub_url = auth_result?;
 
                         let listener = match self.create_listener(tcp.remote_port).await {
                             Ok(listener) => listener,
@@ -143,7 +147,7 @@ impl Server {
                         let host = listener.local_addr()?.ip();
                         let port = listener.local_addr()?.port();
                         info!(?host, ?port, "new client");
-                        stream.send(RelayMessage::Hello(port.to_string())).await?;
+                        stream.send(RelayMessage::Hello(pub_url)).await?;
 
                         loop {
                             if stream.send(RelayMessage::Heartbeat).await.is_err() {

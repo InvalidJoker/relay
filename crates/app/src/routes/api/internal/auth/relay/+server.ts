@@ -15,6 +15,7 @@ const HeadersSchema = z.object({
 });
 
 const relayPubDomain = envPublic.PUBLIC_RELAY_DOMAIN || "relay.invalidjoker.dev";
+const relayTcpDomain = envPublic.PUBLIC_TCP_DOMAIN || "tcp.invalidjoker.dev";
 
 export const GET: RequestHandler = async ({ request }) => {
     const session = await auth.api.getSession({
@@ -61,7 +62,7 @@ export const GET: RequestHandler = async ({ request }) => {
             throw error(403, 'Forbidden: You do not have access to this port');
         }
 
-        result = port.toString();
+        result = relayTcpDomain + ":" + port;
     } else if (relayType === "http" && (provided != null && provided != "")) {
         let hostname: string;
         try {
