@@ -49,6 +49,9 @@ enum Commands {
 
         #[arg(long, requires = "username")]
         password: Option<String>,
+
+        #[arg(long)]
+        save: bool,
     },
     Tcp {
         /// The Local port to listen on
@@ -56,6 +59,9 @@ enum Commands {
 
         /// Not everybody can select the port they want and also it never needs to be required
         remote_port: Option<u16>,
+
+        #[arg(long)]
+        save: bool,
     },
     Run {
         #[arg(short, long)]
@@ -180,6 +186,7 @@ async fn main() -> anyhow::Result<()> {
             subdomain,
             username,
             password,
+            save
         } => {
             let relay_info = auth::get_relay_info(config.server.clone(), &client)
                 .await
@@ -195,8 +202,8 @@ async fn main() -> anyhow::Result<()> {
 
             let host_config = HostConfig::Http(HttpHostConfig {
                 local_port: port,
-                domain: subdomain,
-                auth,
+                domain: subdomain.clone(),
+                auth: auth.clone(),
             });
 
             let client = Client::new(
@@ -207,9 +214,24 @@ async fn main() -> anyhow::Result<()> {
                 config.secret,
             )
             .await?;
+
+            if save {
+                let local_config = config::Config {
+                    relay_type: RelayType::Http,
+                    port,
+                    remote_port: None,
+                    domain: subdomain,
+                    auth
+                };
+
+                let path = PathBuf::from("relay.toml");
+                std::fs::write(path, toml::to_string(&local_config)?)?;
+                info!("Config saved to relay.toml");
+            }
+
             client.listen().await?;
         }
-        Commands::Tcp { port, remote_port } => {
+        Commands::Tcp { port, remote_port, save } => {
             let relay_info = auth::get_relay_info(config.server.clone(), &client)
                 .await
                 .context("Failed to get relay info")?;
@@ -227,6 +249,21 @@ async fn main() -> anyhow::Result<()> {
                 config.secret,
             )
             .await?;
+
+            if save {
+                let local_config = config::Config {
+                    relay_type: RelayType::Tcp,
+                    port,
+                    remote_port,
+                    domain: None,
+                    auth: None,
+                };
+
+                let path = PathBuf::from("relay.toml");
+                std::fs::write(path, toml::to_string(&local_config)?)?;
+                info!("Config saved to relay.toml");
+            }
+
             client.listen().await?;
         }
         Commands::Run { path } => {
