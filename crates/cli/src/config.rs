@@ -1,5 +1,6 @@
 use relay_common::model::RelayType;
 use serde::{Deserialize, Serialize};
+use relay_common::model::http::AuthConfig;
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
@@ -7,8 +8,10 @@ pub struct Config {
     #[serde(rename = "type")]
     pub relay_type: RelayType,
 
-    pub port: Option<u16>,
+    pub port: u16,
 
-    pub subdomain: Option<String>,
+    pub remote_port: Option<u16>,
+
+    pub auth: Option<AuthConfig>,
     pub domain: Option<String>,
 }

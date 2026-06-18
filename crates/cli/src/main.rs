@@ -59,8 +59,8 @@ enum Commands {
     },
     Run {
         #[arg(short, long)]
-        path: PathBuf,
-    }, // TODO: run command, run from config
+        path: Option<PathBuf>,
+    },
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -230,15 +230,55 @@ async fn main() -> anyhow::Result<()> {
             client.listen().await?;
         }
         Commands::Run { path } => {
-            let config_content = std::fs::read_to_string(path)?;
-            let config: config::Config = toml::from_str(&config_content)?;
+            let path = path.unwrap_or_else(|| PathBuf::from("relay.toml"));
 
-            match config.relay_type {
-                RelayType::Http => {
-                    info!("Running HTTP relay with config: {:?}", config);
-                }
+            let config_content = std::fs::read_to_string(&path)
+                .with_context(|| format!("Failed to read config file: {:?}", path))?;
+
+            let local_config: config::Config = toml::from_str(&config_content)
+                .context("Failed to parse config file")?;
+
+            let relay_info = auth::get_relay_info(config.server.clone(), &client)
+                .await
+                .context("Failed to get relay info")?;
+
+            match local_config.relay_type {
                 RelayType::Tcp => {
-                    info!("Running TCP relay with config: {:?}", config);
+                    info!("Running TCP relay with config: {:?}", local_config);
+
+                    let host_config = HostConfig::Tcp(TcpHostConfig {
+                        local_port: local_config.port,
+                        remote_port: local_config.remote_port,
+                    });
+
+                    let client = Client::new(
+                        "localhost",
+                        local_config.port,
+                        relay_info.relay_url,
+                        host_config,
+                        config.secret,
+                    )
+                        .await?;
+                    client.listen().await?;
+                }
+                RelayType::Http => {
+                    info!("Running HTTP relay with config: {:?}", local_config);
+
+                    let host_config = HostConfig::Http(HttpHostConfig {
+                        local_port: local_config.port,
+                        domain: local_config.domain,
+                        auth: local_config.auth,
+                    });
+
+                    let client = Client::new(
+                        "localhost",
+                        local_config.port,
+                        relay_info.relay_url,
+                        host_config,
+                        config.secret,
+                    )
+                        .await?;
+                    client.listen().await?;
                 }
             }
         }

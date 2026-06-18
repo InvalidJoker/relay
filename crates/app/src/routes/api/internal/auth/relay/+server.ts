@@ -70,11 +70,6 @@ export const GET: RequestHandler = async ({ request }) => {
             if (hostname.length === 0 || hostname.length > 255) {
                 throw new Error('Invalid hostname length');
             }
-            // Basic regex for hostname validation (does not cover all cases)
-            const hostnameRegex = /^(?=.{1,255}$)([a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$/;
-            if (!hostnameRegex.test(hostname)) {
-                throw new Error('Invalid hostname format');
-            }
         } catch (e) {
             throw error(400, 'Provided value is not a valid hostname');
         }
