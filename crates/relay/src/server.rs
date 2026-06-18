@@ -125,8 +125,7 @@ impl Server {
             Some(ClientMessage::Hello(msg)) => {
                 match msg.host_config {
                     HostConfig::Tcp(tcp) => {
-                        let auth_result =
-                            self.auth.check_tcp(&msg.token, tcp.remote_port).await;
+                        let auth_result = self.auth.check_tcp(&msg.token, tcp.remote_port).await;
                         if let Err(err) = auth_result {
                             warn!(%err, "authentication failed");
                             stream

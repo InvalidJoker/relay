@@ -9,8 +9,10 @@ use hyper::service::service_fn;
 use hyper::{Request, Response, StatusCode};
 use hyper_util::rt::TokioIo;
 use relay_common::model::http::AuthConfig;
+use std::future::Future;
 use std::net::IpAddr;
 use std::sync::Arc;
+use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_rustls::LazyConfigAcceptor;
 use tracing::{error, info, warn};
@@ -20,32 +22,42 @@ pub type HttpClientMap =
     Arc<DashMap<String, (tokio::sync::mpsc::Sender<Uuid>, Option<AuthConfig>)>>;
 pub type HttpTunnelMap = Arc<DashMap<Uuid, tokio::sync::oneshot::Sender<TcpStream>>>;
 
-pub async fn start_http_proxy(
-    bind: IpAddr,
+fn env_port(var: &str, default: u16) -> u16 {
+    std::env::var(var)
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(default)
+}
+
+async fn run_proxy<S, F, Fut>(
+    listener: TcpListener,
     http_clients: HttpClientMap,
     http_tunnels: HttpTunnelMap,
-) -> Result<()> {
-    let port: u16 = std::env::var("HTTP_PORT")
-        .unwrap_or_else(|_| "80".to_string())
-        .parse()
-        .unwrap_or(80);
-    let listener = TcpListener::bind((bind, port)).await?;
-    info!(addr = ?bind, port, "HTTP proxy listening");
-
+    prepare: F,
+) where
+    S: AsyncRead + AsyncWrite + Unpin + Send + 'static,
+    F: Fn(TcpStream) -> Fut + Send + Clone + 'static,
+    Fut: Future<Output = Option<S>> + Send,
+{
     loop {
         let (stream, _addr) = match listener.accept().await {
             Ok(res) => res,
             Err(err) => {
-                warn!(%err, "Failed to accept HTTP connection");
+                warn!(%err, "Failed to accept connection");
                 continue;
             }
         };
 
-        let io = TokioIo::new(stream);
         let http_clients = http_clients.clone();
         let http_tunnels = http_tunnels.clone();
+        let prepare = prepare.clone();
 
         tokio::spawn(async move {
+            let Some(stream) = prepare(stream).await else {
+                return;
+            };
+
+            let io = TokioIo::new(stream);
             let service = service_fn(move |req| {
                 let http_clients = http_clients.clone();
                 let http_tunnels = http_tunnels.clone();
@@ -53,10 +65,27 @@ pub async fn start_http_proxy(
             });
 
             if let Err(err) = http1::Builder::new().serve_connection(io, service).await {
-                error!(%err, "Error serving HTTP connection");
+                error!(%err, "Error serving connection");
             }
         });
     }
+}
+
+pub async fn start_http_proxy(
+    bind: IpAddr,
+    http_clients: HttpClientMap,
+    http_tunnels: HttpTunnelMap,
+) -> Result<()> {
+    let port = env_port("HTTP_PORT", 80);
+    let listener = TcpListener::bind((bind, port)).await?;
+    info!(addr = ?bind, port, "HTTP proxy listening");
+
+    run_proxy(listener, http_clients, http_tunnels, |stream| async move {
+        Some(stream)
+    })
+    .await;
+
+    Ok(())
 }
 
 pub async fn start_https_proxy(
@@ -64,10 +93,7 @@ pub async fn start_https_proxy(
     http_clients: HttpClientMap,
     http_tunnels: HttpTunnelMap,
 ) -> Result<()> {
-    let port: u16 = std::env::var("HTTPS_PORT")
-        .unwrap_or_else(|_| "443".to_string())
-        .parse()
-        .unwrap_or(443);
+    let port = env_port("HTTPS_PORT", 443);
     let listener = TcpListener::bind((bind, port)).await?;
     info!(addr = ?bind, port, "HTTPS proxy listening");
 
@@ -89,80 +115,55 @@ pub async fn start_https_proxy(
             .with_single_cert(cert_chain, priv_key)?,
     );
 
-    loop {
-        let (stream, _addr) = match listener.accept().await {
-            Ok(res) => res,
-            Err(err) => {
-                warn!(%err, "Failed to accept HTTPS connection");
-                continue;
-            }
-        };
-
-        let http_clients = http_clients.clone();
-        let http_tunnels = http_tunnels.clone();
+    run_proxy(listener, http_clients, http_tunnels, move |stream| {
         let server_config = server_config.clone();
-
-        tokio::spawn(async move {
+        async move {
             let acceptor = LazyConfigAcceptor::new(rustls::server::Acceptor::default(), stream);
             let start = match acceptor.await {
                 Ok(start) => start,
                 Err(err) => {
                     warn!(%err, "Failed to read ClientHello");
-                    return;
+                    return None;
                 }
             };
 
-            let stream = match start.into_stream(server_config).await {
-                Ok(stream) => stream,
+            match start.into_stream(server_config).await {
+                Ok(stream) => Some(stream),
                 Err(err) => {
                     warn!(%err, "TLS handshake failed");
-                    return;
+                    None
                 }
-            };
-
-            let io = TokioIo::new(stream);
-            let service = service_fn(move |req| {
-                let http_clients = http_clients.clone();
-                let http_tunnels = http_tunnels.clone();
-                async move { handle_request(req, http_clients, http_tunnels).await }
-            });
-
-            if let Err(err) = http1::Builder::new().serve_connection(io, service).await {
-                error!(%err, "Error serving HTTPS connection");
             }
-        });
-    }
+        }
+    })
+    .await;
+
+    Ok(())
 }
 
 fn is_authorized(req: &Request<Incoming>, auth: &AuthConfig) -> bool {
-    let header = match req.headers().get(hyper::header::AUTHORIZATION) {
-        Some(h) => h,
-        None => return false,
+    let Some(header) = req
+        .headers()
+        .get(hyper::header::AUTHORIZATION)
+        .and_then(|h| h.to_str().ok())
+    else {
+        return false;
     };
 
-    let header_str = match header.to_str() {
-        Ok(s) => s,
-        Err(_) => return false,
+    let Some(token) = header.strip_prefix("Basic ") else {
+        return false;
     };
 
-    let token = match header_str.strip_prefix("Basic ") {
-        Some(t) => t,
-        None => return false,
+    let Ok(decoded) = base64::prelude::BASE64_STANDARD.decode(token) else {
+        return false;
     };
 
-    let decoded = match base64::prelude::BASE64_STANDARD.decode(token) {
-        Ok(d) => d,
-        Err(_) => return false,
+    let Ok(decoded) = String::from_utf8(decoded) else {
+        return false;
     };
 
-    let decoded_str = match String::from_utf8(decoded) {
-        Ok(s) => s,
-        Err(_) => return false,
-    };
-
-    let (user, pass) = match decoded_str.split_once(':') {
-        Some(parts) => parts,
-        None => return false,
+    let Some((user, pass)) = decoded.split_once(':') else {
+        return false;
     };
 
     user == auth.username && pass == auth.password
@@ -173,18 +174,15 @@ async fn handle_request(
     http_clients: HttpClientMap,
     http_tunnels: HttpTunnelMap,
 ) -> Result<Response<BoxBody<Bytes, hyper::Error>>, hyper::Error> {
-    let host = match req.headers().get(hyper::header::HOST) {
-        Some(host) => host.to_str().unwrap_or(""),
-        None => "",
-    };
-
+    let host = req
+        .headers()
+        .get(hyper::header::HOST)
+        .and_then(|h| h.to_str().ok())
+        .unwrap_or("");
     let domain = host.split(':').next().unwrap_or("").to_string();
 
-    let client_entry = match http_clients.get(&domain) {
-        Some(entry) => entry.clone(),
-        None => {
-            return Ok(not_found());
-        }
+    let Some(client_entry) = http_clients.get(&domain).map(|e| e.clone()) else {
+        return Ok(not_found());
     };
     let (client_tx, auth_config) = client_entry;
 
@@ -230,25 +228,25 @@ async fn handle_request(
         }
     });
 
-    let res = match sender.send_request(req).await {
-        Ok(res) => res,
+    match sender.send_request(req).await {
+        Ok(res) => Ok(res.map(|b| b.boxed())),
         Err(err) => {
             error!(%err, "Failed to send request");
-            return Ok(internal_server_error("Failed to proxy request"));
+            Ok(internal_server_error("Failed to proxy request"))
         }
-    };
+    }
+}
 
-    Ok(res.map(|b| b.boxed()))
+fn body_from(msg: impl Into<Bytes>) -> BoxBody<Bytes, hyper::Error> {
+    http_body_util::Full::new(msg.into())
+        .map_err(|e| match e {})
+        .boxed()
 }
 
 fn not_found() -> Response<BoxBody<Bytes, hyper::Error>> {
     Response::builder()
         .status(StatusCode::NOT_FOUND)
-        .body(
-            http_body_util::Full::new(Bytes::from("404 Not Found: Subdomain not registered"))
-                .map_err(|e| match e {})
-                .boxed(),
-        )
+        .body(body_from("404 Not Found: Subdomain not registered"))
         .unwrap()
 }
 
@@ -259,21 +257,13 @@ fn unauthorized() -> Response<BoxBody<Bytes, hyper::Error>> {
             hyper::header::WWW_AUTHENTICATE,
             "Basic realm=\"Restricted\"",
         )
-        .body(
-            http_body_util::Full::new(Bytes::from("401 Unauthorized: Invalid credentials"))
-                .map_err(|e| match e {})
-                .boxed(),
-        )
+        .body(body_from("401 Unauthorized: Invalid credentials"))
         .unwrap()
 }
 
 fn internal_server_error(msg: &'static str) -> Response<BoxBody<Bytes, hyper::Error>> {
     Response::builder()
         .status(StatusCode::INTERNAL_SERVER_ERROR)
-        .body(
-            http_body_util::Full::new(Bytes::from(msg))
-                .map_err(|e| match e {})
-                .boxed(),
-        )
+        .body(body_from(msg))
         .unwrap()
 }
