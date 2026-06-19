@@ -149,7 +149,7 @@ impl Server {
 
 
                         if tcp.remote_port.is_none() {
-                            pub_url = format!("{}:{}", host, port);
+                            pub_url = format!("{}:{}", pub_url, port);
                         }
 
                         stream.send(RelayMessage::Hello(pub_url)).await?;
