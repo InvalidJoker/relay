@@ -83,6 +83,7 @@ jobs:
           name: ${{ matrix.artifact }}
           path: target/${{ matrix.target }}/release/relay_cli
           if-no-files-found: error
+          retention-days: 7
 
       - name: Upload artifact (windows)
         if: matrix.os == 'windows-latest'
@@ -91,3 +92,4 @@ jobs:
           name: ${{ matrix.artifact }}
           path: target/${{ matrix.target }}/release/relay_cli.exe
           if-no-files-found: error
+          retention-days: 7

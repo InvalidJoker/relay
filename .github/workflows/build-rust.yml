@@ -49,7 +49,7 @@ jobs:
           name: relay-binary
           path: target/x86_64-unknown-linux-musl/release/relay
           if-no-files-found: error
-          retention-days: 1
+          retention-days: 7
 
   build-image:
     name: Build & push Docker image
