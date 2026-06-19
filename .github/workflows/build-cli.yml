@@ -33,11 +33,6 @@ jobs:
             artifact: relay-linux-aarch64
             use-cross: true
 
-          - os: macos-13
-            target: x86_64-apple-darwin
-            artifact: relay-macos-x86_64
-            use-cross: false
-
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact: relay-macos-aarch64
