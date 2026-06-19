@@ -29,6 +29,8 @@ export const actions = {
                 });
             }
 
+            console.error('Unexpected error during sign-in:', error);
+
             return fail(500, {
                 message: 'Unexpected error'
             });
