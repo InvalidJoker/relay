@@ -1,18 +1,19 @@
-name: Build CLI
+name: Release CLI
 
 on:
   push:
     branches:
-      - main
+      - prod
     paths:
       - "crates/cli/**"
       - "crates/common/**"
       - "Cargo.toml"
       - "Cargo.lock"
-      - ".github/workflows/build-cli.yml"
+      - ".github/workflows/release.yml"
 
 permissions:
-  contents: read
+  contents: write
+  packages: write
 
 jobs:
   build:
@@ -35,6 +36,11 @@ jobs:
           - os: macos-latest
             target: aarch64-apple-darwin
             artifact: relay-macos-aarch64
+            use-cross: false
+
+          - os: macos-latest
+            target: x86_64-apple-darwin
+            artifact: relay-macos-x86_64
             use-cross: false
 
           - os: windows-latest
@@ -70,20 +76,60 @@ jobs:
         if: "!matrix.use-cross"
         run: cargo build --release --target ${{ matrix.target }} --bin relay_cli
 
-      - name: Upload artifact (unix)
+      - name: Rename binary (unix)
         if: matrix.os != 'windows-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.artifact }}
-          path: target/${{ matrix.target }}/release/relay_cli
-          if-no-files-found: error
-          retention-days: 7
+        run: cp target/${{ matrix.target }}/release/relay_cli ${{ matrix.artifact }}
 
-      - name: Upload artifact (windows)
+      - name: Rename binary (windows)
         if: matrix.os == 'windows-latest'
+        run: cp target/${{ matrix.target }}/release/relay_cli.exe ${{ matrix.artifact }}
+
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact }}
-          path: target/${{ matrix.target }}/release/relay_cli.exe
+          path: ${{ matrix.artifact }}
           if-no-files-found: error
-          retention-days: 7
+          retention-days: 1
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate version tag
+        id: version
+        run: |
+          DATE=$(date -u +%Y.%m.%d)
+          SHA=$(git rev-parse --short HEAD)
+          echo "tag=v${DATE}-${SHA}" >> $GITHUB_OUTPUT
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Flatten artifacts
+        run: |
+          mkdir release-assets
+          find artifacts/ -type f -exec mv {} release-assets/ \;
+          ls -la release-assets/
+
+      - name: Mark unix binaries executable
+        run: chmod +x release-assets/relay-linux-* release-assets/relay-macos-*
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag }}
+          name: ${{ steps.version.outputs.tag }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
+          files: release-assets/*
