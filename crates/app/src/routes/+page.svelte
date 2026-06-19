@@ -202,7 +202,7 @@
 
 		<p class="max-w-xl text-lg leading-relaxed text-muted-foreground">
 			Relay tunnels your localhost to the internet instantly — with persistent domains, custom URLs,
-			and zero configuration. No account required to start.
+			and zero configuration.
 		</p>
 
 		<div class="flex flex-wrap justify-center gap-3">
