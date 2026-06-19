@@ -106,7 +106,7 @@ async fn main() -> anyhow::Result<()> {
     }
 
     let config = config.unwrap_or_else(|| Config {
-        server: Url::parse("https://relay.invalidjoker.dev").unwrap(),
+        server: Url::parse("https://relay.koder.wtf").unwrap(),
         secret: String::new(),
     }); // the default config is only used for login, so it's fine to have an empty secret
 
@@ -115,7 +115,7 @@ async fn main() -> anyhow::Result<()> {
     match args.command {
         Commands::Login { server } => {
             let server =
-                server.unwrap_or_else(|| Url::parse("https://relay.invalidjoker.dev").unwrap());
+                server.unwrap_or_else(|| Url::parse("https://relay.koder.wtf").unwrap());
 
             let response = auth::request_device_code(server.clone(), &client)
                 .await
