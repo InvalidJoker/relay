@@ -1,6 +1,6 @@
 use relay_common::model::RelayType;
-use serde::{Deserialize, Serialize};
 use relay_common::model::http::AuthConfig;
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {

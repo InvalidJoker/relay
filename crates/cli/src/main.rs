@@ -114,8 +114,7 @@ async fn main() -> anyhow::Result<()> {
 
     match args.command {
         Commands::Login { server } => {
-            let server =
-                server.unwrap_or_else(|| Url::parse("https://relay.koder.wtf").unwrap());
+            let server = server.unwrap_or_else(|| Url::parse("https://relay.koder.wtf").unwrap());
 
             let response = auth::request_device_code(server.clone(), &client)
                 .await
@@ -186,7 +185,7 @@ async fn main() -> anyhow::Result<()> {
             subdomain,
             username,
             password,
-            save
+            save,
         } => {
             let relay_info = auth::get_relay_info(config.server.clone(), &client)
                 .await
@@ -221,7 +220,7 @@ async fn main() -> anyhow::Result<()> {
                     port,
                     remote_port: None,
                     domain: subdomain,
-                    auth
+                    auth,
                 };
 
                 let path = PathBuf::from("relay.toml");
@@ -231,7 +230,11 @@ async fn main() -> anyhow::Result<()> {
 
             client.listen().await?;
         }
-        Commands::Tcp { port, remote_port, save } => {
+        Commands::Tcp {
+            port,
+            remote_port,
+            save,
+        } => {
             let relay_info = auth::get_relay_info(config.server.clone(), &client)
                 .await
                 .context("Failed to get relay info")?;
@@ -272,8 +275,8 @@ async fn main() -> anyhow::Result<()> {
             let config_content = std::fs::read_to_string(&path)
                 .with_context(|| format!("Failed to read config file: {:?}", path))?;
 
-            let local_config: config::Config = toml::from_str(&config_content)
-                .context("Failed to parse config file")?;
+            let local_config: config::Config =
+                toml::from_str(&config_content).context("Failed to parse config file")?;
 
             let relay_info = auth::get_relay_info(config.server.clone(), &client)
                 .await
@@ -295,7 +298,7 @@ async fn main() -> anyhow::Result<()> {
                         host_config,
                         config.secret,
                     )
-                        .await?;
+                    .await?;
                     client.listen().await?;
                 }
                 RelayType::Http => {
@@ -314,7 +317,7 @@ async fn main() -> anyhow::Result<()> {
                         host_config,
                         config.secret,
                     )
-                        .await?;
+                    .await?;
                     client.listen().await?;
                 }
             }

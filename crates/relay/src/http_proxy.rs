@@ -12,6 +12,7 @@ use relay_common::model::http::AuthConfig;
 use std::future::Future;
 use std::net::IpAddr;
 use std::sync::Arc;
+use subtle::ConstantTimeEq;
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_rustls::LazyConfigAcceptor;
@@ -141,6 +142,10 @@ pub async fn start_https_proxy(
     Ok(())
 }
 
+fn ct_eq(a: &str, b: &str) -> bool {
+    a.as_bytes().ct_eq(b.as_bytes()).into()
+}
+
 fn is_authorized(req: &Request<Incoming>, auth: &AuthConfig) -> bool {
     let Some(header) = req
         .headers()
@@ -166,7 +171,7 @@ fn is_authorized(req: &Request<Incoming>, auth: &AuthConfig) -> bool {
         return false;
     };
 
-    user == auth.username && pass == auth.password
+    ct_eq(user, &auth.username) & ct_eq(pass, &auth.password)
 }
 
 async fn handle_request(

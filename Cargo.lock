@@ -1402,6 +1402,7 @@ dependencies = [
  "rustls-pki-types",
  "serde",
  "serde_json",
+ "subtle",
  "tokio",
  "tokio-rustls",
  "tracing",
