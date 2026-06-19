@@ -134,6 +134,8 @@ export const actions: Actions = {
 
 		if (!sub) return fail(400, { message: "Subdomain and target port required." });
 
+		// todo: validate if already exists
+
 		try {
 			await db.insert(subdomain).values({
 				id: crypto.randomUUID(),
