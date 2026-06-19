@@ -134,7 +134,7 @@ impl Server {
                             return Ok(());
                         }
 
-                        let pub_url = auth_result?;
+                        let mut pub_url = auth_result?;
 
                         let listener = match self.create_listener(tcp.remote_port).await {
                             Ok(listener) => listener,
@@ -146,6 +146,12 @@ impl Server {
                         let host = listener.local_addr()?.ip();
                         let port = listener.local_addr()?.port();
                         info!(?host, ?port, "new client");
+
+
+                        if tcp.remote_port.is_none() {
+                            pub_url = format!("{}:{}", host, port);
+                        }
+
                         stream.send(RelayMessage::Hello(pub_url)).await?;
 
                         loop {

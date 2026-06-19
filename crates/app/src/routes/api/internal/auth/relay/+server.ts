@@ -42,7 +42,7 @@ export const GET: RequestHandler = async ({ request }) => {
     let result: string | null = null;
 
     if (relayType === "tcp") {
-        if (provided == null || provided == "") return new Response(); // always allowed
+        if (provided == null || provided == "") return json({ success: true, result: relayTcpDomain });
 
         let port: number;
         try {
