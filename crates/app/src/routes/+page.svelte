@@ -78,20 +78,29 @@
 		{
 			number: '01',
 			title: 'Install',
-			description: 'Download the relay CLI with a single command.',
-			code: 'cargo install relay-cli'
+			description: 'Grab the relay CLI with a single command.',
+			commands: [
+				{
+					label: 'macOS / Linux',
+					code: 'curl -fsSL https://raw.githubusercontent.com/InvalidJoker/relay/main/install.sh | sh'
+				},
+				{
+					label: 'Windows (PowerShell)',
+					code: 'irm https://raw.githubusercontent.com/InvalidJoker/relay/main/install.ps1 | iex'
+				}
+			]
 		},
 		{
 			number: '02',
 			title: 'Connect',
 			description: 'Forward any local port to the internet with one command.',
-			code: 'relay http 8080'
+			commands: [{ code: 'relay http 8080' }]
 		},
 		{
 			number: '03',
 			title: 'Share',
 			description: 'Instantly share the URL with anyone.',
-			code: `→ myapp.${env.PUBLIC_RELAY_DOMAIN}`
+			commands: [{ code: `→ myapp.${env.PUBLIC_RELAY_DOMAIN}` }]
 		}
 	];
 </script>
@@ -287,9 +296,18 @@
 						<Badge variant="outline" class="rounded-full border-indigo-500/30 bg-indigo-500/10 text-indigo-300 font-mono">{step.number}</Badge>
 						<h3 class="text-lg font-bold">{step.title}</h3>
 						<p class="text-sm text-muted-foreground leading-relaxed max-w-[200px]">{step.description}</p>
-						<div class="flex items-center gap-2 rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 font-mono text-xs text-indigo-300">
-							<Terminal size={12} />
-							{step.code}
+						<div class="flex w-full flex-col gap-2">
+							{#each step.commands as command}
+								<div class="flex w-full flex-col gap-1">
+									{#if command.label}
+										<span class="text-left text-[11px] font-medium text-muted-foreground/70">{command.label}</span>
+									{/if}
+									<div class="flex w-full items-start gap-2 rounded-lg border border-white/[0.08] bg-black/30 px-3 py-2 text-left font-mono text-xs text-indigo-300">
+										<Terminal size={12} class="mt-0.5 shrink-0" />
+										<span class="break-all">{command.code}</span>
+									</div>
+								</div>
+							{/each}
 						</div>
 					</Card.Content>
 				</Card.Root>
