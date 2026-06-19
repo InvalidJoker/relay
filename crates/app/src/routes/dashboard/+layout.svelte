@@ -5,7 +5,8 @@
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
 	import {
 		LogOut,
-		ChevronDown
+		ChevronDown,
+		ShieldCheck
 	} from 'lucide-svelte';
 	import type { LayoutServerData } from './$types';
 
@@ -59,6 +60,21 @@
 						</div>
 					</DropdownMenu.Label>
 					<DropdownMenu.Separator />
+					{#if data.user.role === 'admin'}
+						<DropdownMenu.Item>
+							{#snippet child({ props })}
+								<a
+									href="/admin"
+									class="flex w-full items-center gap-2 text-muted-foreground"
+									{...props}
+								>
+									<ShieldCheck size={14} />
+									Admin Panel
+								</a>
+							{/snippet}
+						</DropdownMenu.Item>
+						<DropdownMenu.Separator />
+					{/if}
 					<form method="post" action="?/signOut" use:enhance>
 						<DropdownMenu.Item>
 							{#snippet child({ props })}
