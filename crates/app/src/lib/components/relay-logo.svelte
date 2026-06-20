@@ -1,31 +1,13 @@
 <script lang="ts">
-	import { Zap } from 'lucide-svelte';
+	import favicon from '$lib/assets/favicon.svg';
+
 
 	let { size = 28, class: className = '' }: { size?: number; class?: string } = $props();
 </script>
 
 <div class="relay-logo {className}">
-	<svg width="0" height="0" style="position: absolute">
-		<defs>
-			<linearGradient id="relay-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-				<stop offset="0%" stop-color="#818cf8" />
-				<stop offset="100%" stop-color="#a78bfa" />
-			</linearGradient>
-		</defs>
-	</svg>
-
-	<Zap
-			size={size}
-			fill="url(#relay-gradient)"
-			style="stroke: url(#relay-gradient);"
-	/>
-
-	<span
-			style="font-size: {size * 0.75}px"
-			class="relay-wordmark"
-	>
-		relay
-	</span>
+	<img src={favicon} alt="Relay" width={size} height={size} />
+	<span class="relay-wordmark">Relay</span>
 </div>
 
 <style>
