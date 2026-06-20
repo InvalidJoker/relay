@@ -8,11 +8,11 @@
 	const cards = $derived([
 		{ label: 'Total Users', value: data.stats.totalUsers, icon: Users, color: '#818cf8' },
 		{ label: 'New (7d)', value: data.stats.newUsers, icon: UserPlus, color: '#34d399' },
-		{ label: 'Admins', value: data.stats.adminUsers, icon: ShieldCheck, color: '#a78bfa' },
+		{ label: 'Admins', value: data.stats.adminUsers, icon: ShieldCheck, color: '#6366f1' },
 		{ label: 'Banned', value: data.stats.bannedUsers, icon: Ban, color: '#f87171' },
 		{ label: 'Ports', value: data.stats.totalPorts, icon: Plug, color: '#818cf8' },
-		{ label: 'Custom Domains', value: data.stats.totalDomains, icon: Globe, color: '#a78bfa' },
-		{ label: 'Subdomains', value: data.stats.totalSubdomains, icon: Link2, color: '#c084fc' }
+		{ label: 'Custom Domains', value: data.stats.totalDomains, icon: Globe, color: '#6366f1' },
+		{ label: 'Subdomains', value: data.stats.totalSubdomains, icon: Link2, color: '#4f46e5' }
 	]);
 </script>
 

@@ -26,14 +26,14 @@
 			used: data.domains.length,
 			max: 1,
 			icon: Globe,
-			color: '#a78bfa'
+			color: '#6366f1'
 		},
 		{
 			label: 'Subdomains',
 			used: data.subdomains.length,
 			max: 3,
 			icon: Link2,
-			color: '#c084fc'
+			color: '#4f46e5'
 		}
 	]);
 </script>

@@ -40,7 +40,7 @@
 					{#snippet child({ props })}
 						<Button variant="ghost" size="sm" class="gap-2" {...props}>
 							<div
-								class="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-[11px] font-bold text-white"
+								class="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 text-[11px] font-bold text-white"
 							>
 								{getInitials(data.user.name, data.user.email)}
 							</div>
