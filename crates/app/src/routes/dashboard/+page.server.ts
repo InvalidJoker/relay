@@ -5,6 +5,10 @@ import { auth } from '$lib/server/auth';
 import { db } from '$lib/server/db';
 import { persistentPort, customDomain, subdomain } from '$lib/server/db/schema';
 import { eq } from 'drizzle-orm';
+import { env } from '$env/dynamic/public';
+
+const PORT_RANGE_START = Number(env.PUBLIC_PORT_RANGE_START) || 10000;
+const PORT_RANGE_END = Number(env.PUBLIC_PORT_RANGE_END) || 20000;
 
 export const load: PageServerLoad = async (event) => {
 
@@ -22,11 +26,12 @@ export const load: PageServerLoad = async (event) => {
 		where: eq(subdomain.userId, userId)
 	});
 
-	return { 
+	return {
 		user: event.locals.user,
 		ports,
 		domains,
-		subdomains
+		subdomains,
+		portRange: { start: PORT_RANGE_START, end: PORT_RANGE_END }
 	};
 };
 
@@ -55,7 +60,11 @@ export const actions: Actions = {
 		
 		if (!portStr) return fail(400, { message: "Port is required." });
 		const port = parseInt(portStr);
-		if (isNaN(port) || port <= 0 || port > 65535) return fail(400, { message: "Invalid port." });
+		if (isNaN(port) || port < PORT_RANGE_START || port > PORT_RANGE_END) {
+			return fail(400, {
+				message: `Remote port must be between ${PORT_RANGE_START} and ${PORT_RANGE_END}.`
+			});
+		}
 		
 		try {
 			await db.insert(persistentPort).values({

@@ -35,7 +35,17 @@ async fn main() -> anyhow::Result<()> {
 
     info!("Starting Relay on version {}", env!("GIT_HASH"));
 
-    let port_range = 10000..=20000;
+    let port_range_start = env::var("PORT_RANGE_START")
+        .ok()
+        .and_then(|v| v.parse::<u16>().ok())
+        .unwrap_or(10000);
+    let port_range_end = env::var("PORT_RANGE_END")
+        .ok()
+        .and_then(|v| v.parse::<u16>().ok())
+        .unwrap_or(20000);
+    let port_range = port_range_start..=port_range_end;
+    info!("Allocating remote ports in range {port_range_start}-{port_range_end}");
+
     let bind = IpAddr::from([0, 0, 0, 0]);
     let backend_url =
         env::var("BACKEND_URL").unwrap_or_else(|_| "http://localhost:5173".to_string());

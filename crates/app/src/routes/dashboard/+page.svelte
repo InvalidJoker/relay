@@ -106,7 +106,9 @@
 				<Card.Header>
 					<Card.Title>Persistent Ports</Card.Title>
 					<Card.Description>
-						Reserve permanent ports for your tunnels. Limit: 2
+						Reserve a fixed <strong>remote port</strong> on the relay server so your tunnel is always
+						reachable at the same address. Allowed range: {data.portRange.start}–{data.portRange.end}.
+						Limit: 2
 					</Card.Description>
 				</Card.Header>
 				<Card.Content>
@@ -159,15 +161,15 @@
 						</h3>
 						<form method="post" action="?/addPort" use:enhance class="form-grid">
 							<div class="form-field">
-								<Label for="port">Port Number</Label>
+								<Label for="port">Remote Port</Label>
 								<Input
 									id="port"
 									name="port"
 									type="number"
-									placeholder="e.g. 8080"
+									placeholder="e.g. {data.portRange.start}"
 									required
-									min="1"
-									max="65535"
+									min={data.portRange.start}
+									max={data.portRange.end}
 									disabled={data.ports.length >= 2}
 								/>
 							</div>

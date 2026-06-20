@@ -24,6 +24,8 @@ services:
       - PUBLIC_RELAY_DOMAIN=relay.koder.wtf
       - PUBLIC_TCP_DOMAIN=tcp.koder.wtf
       - RELAY_URL=relay.koder.wtf
+      - PUBLIC_PORT_RANGE_START=10000
+      - PUBLIC_PORT_RANGE_END=20000
     networks:
       - proxiable
 
@@ -33,6 +35,8 @@ services:
     restart: unless-stopped
     environment:
       - BACKEND_URL=https://relay.koder.wtf
+      - PORT_RANGE_START=10000
+      - PORT_RANGE_END=20000
     ports:
       - "2550:2550/tcp"
       - "10000-20000:10000-20000/tcp"
