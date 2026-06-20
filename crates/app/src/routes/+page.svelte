@@ -267,15 +267,13 @@
 			</div>
 			<div class="flex flex-col gap-1.5 p-5 font-mono text-sm">
 				<p><span class="text-indigo-400">$</span> relay http 8080</p>
-				<p class="text-muted-foreground">Establishing secure tunnel…</p>
-				<p class="flex items-center gap-1.5 text-green-400">
-					<Check size={14} /> Tunnel live
+				<p>
+					<span class="text-green-400">INFO</span> <span class="text-muted-foreground">Reaching out to relay...</span>
 				</p>
 				<p>
-					<span class="text-muted-foreground">→</span>
-					<span class="text-gradient font-semibold">https://myapp.{relayDomain}</span>
+					<span class="text-green-400">INFO</span> <span class="text-muted-foreground">Tunnel established at</span>
+					<span class="text-gradient"> myapp.{relayDomain}</span>
 				</p>
-				<p class="text-muted-foreground">&nbsp;&nbsp;forwarding to localhost:8080</p>
 			</div>
 		</Card.Root>
 	</div>
