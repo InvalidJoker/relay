@@ -50,8 +50,8 @@ export const actions: Actions = {
 			where: eq(persistentPort.userId, userId)
 		});
 		
-		if (ports.length >= 2) {
-			return fail(400, { message: "Maximum of 2 ports allowed." });
+		if (ports.length >= 2 && event.locals.user?.role != 'admin') {
+			return fail(400, { message: 'Maximum of 2 ports allowed.' });
 		}
 		
 		const formData = await event.request.formData();
@@ -96,8 +96,8 @@ export const actions: Actions = {
 			where: eq(customDomain.userId, userId)
 		});
 		
-		if (domains.length >= 1) {
-			return fail(400, { message: "Maximum of 1 custom domain allowed." });
+		if (domains.length >= 1 && event.locals.user?.role != 'admin') {
+			return fail(400, { message: 'Maximum of 1 custom domain allowed.' });
 		}
 		
 		const formData = await event.request.formData();
@@ -134,8 +134,8 @@ export const actions: Actions = {
 			where: eq(subdomain.userId, userId)
 		});
 		
-		if (subdomains.length >= 3) {
-			return fail(400, { message: "Maximum of 3 subdomains allowed." });
+		if (subdomains.length >= 3 && event.locals.user?.role != 'admin') {
+			return fail(400, { message: 'Maximum of 3 subdomains allowed.' });
 		}
 		
 		const formData = await event.request.formData();
