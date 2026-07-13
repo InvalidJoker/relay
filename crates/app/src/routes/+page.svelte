@@ -1,5 +1,6 @@
 <script lang="ts">
 	import RelayLogo from '$lib/components/relay-logo.svelte';
+	import RelayHop from '$lib/components/relay-hop.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import { Badge } from '$lib/components/ui/badge';
 	import * as Card from '$lib/components/ui/card';
@@ -218,23 +219,26 @@
 
 <!-- HERO -->
 <section class="relative overflow-hidden">
-	<div class="brand-glow brand-glow-1 pointer-events-none absolute"></div>
-	<div class="brand-glow brand-glow-2 pointer-events-none absolute"></div>
+	<div class="dot-grid dot-grid-fade pointer-events-none absolute inset-0"></div>
+	<div class="brand-halo pointer-events-none absolute left-1/2 top-[-120px] size-[520px] -translate-x-1/2 rounded-full"></div>
 
-	<div class="relative mx-auto flex max-w-3xl flex-col items-center gap-7 px-4 pb-16 pt-24 text-center md:pt-28">
-		<Badge variant="outline" class="gap-2 rounded-full border-primary/30 bg-primary/5 px-3 py-1 text-foreground">
-			<span class="size-1.5 animate-pulse rounded-full bg-indigo-400"></span>
+	<div class="relative mx-auto flex max-w-3xl flex-col items-center gap-6 px-4 pb-16 pt-20 text-center md:pt-24">
+		<Badge variant="outline" class="gap-2 rounded-full border-border bg-card/70 px-3 py-1 text-foreground backdrop-blur">
+			<span class="relative flex size-2">
+				<span class="absolute inline-flex size-full animate-ping rounded-full bg-signal opacity-70"></span>
+				<span class="relative inline-flex size-2 rounded-full bg-signal"></span>
+			</span>
 			Open source &amp; free to use
 		</Badge>
 
-		<h1 class="text-balance text-5xl font-extrabold leading-[1.1] tracking-tight md:text-6xl">
-			Share your local server<br />
-			<span class="text-gradient">with the world.</span>
+		<h1 class="text-balance text-5xl font-extrabold leading-[1.05] tracking-tight md:text-6xl">
+			Your localhost,<br />
+			<span class="brand-text">out in the world.</span>
 		</h1>
 
 		<p class="max-w-xl text-lg leading-relaxed text-muted-foreground">
-			Relay tunnels your localhost to the internet instantly — with persistent domains, custom URLs,
-			and zero configuration.
+			Relay tunnels any local port to a public URL in one command — with persistent domains,
+			custom URLs, and zero configuration.
 		</p>
 
 		<div class="flex flex-wrap justify-center gap-3">
@@ -249,15 +253,18 @@
 					<ArrowRight size={18} />
 				</Button>
 			{/if}
-			<Button href={repo} variant="outline" size="lg" class="gap-2">
+			<Button href={repo} variant="outline" size="lg" class="gap-2 bg-card/70 backdrop-blur">
 				<Icon icon="simple-icons:github" width="18" height="18" />
 				View on GitHub
 			</Button>
 		</div>
 
-		<!-- Terminal mockup -->
-		<Card.Root class="mt-6 w-full max-w-2xl overflow-hidden p-0 text-left shadow-2xl">
-			<div class="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-2.5">
+		<!-- Showcase: the relay hop, then the terminal that produces it -->
+		<Card.Root class="mt-6 w-full max-w-2xl overflow-hidden p-0 text-left shadow-xl shadow-brand/5">
+			<div class="dot-grid px-6 py-8">
+				<RelayHop remote="myapp.{relayDomain}" />
+			</div>
+			<div class="flex items-center gap-2 border-y border-border bg-muted/40 px-4 py-2.5">
 				<span class="size-3 rounded-full bg-red-400/80"></span>
 				<span class="size-3 rounded-full bg-yellow-400/80"></span>
 				<span class="size-3 rounded-full bg-green-400/80"></span>
@@ -265,14 +272,14 @@
 					<Terminal size={12} /> relay
 				</span>
 			</div>
-			<div class="flex flex-col gap-1.5 p-5 font-mono text-sm">
-				<p><span class="text-indigo-400">$</span> relay http 8080</p>
+			<div class="flex flex-col gap-1.5 bg-card p-5 font-mono text-sm">
+				<p><span class="text-brand">$</span> relay http 8080</p>
 				<p>
-					<span class="text-green-400">INFO</span> <span class="text-muted-foreground">Reaching out to relay...</span>
+					<span class="text-signal">INFO</span> <span class="text-muted-foreground">Reaching out to relay...</span>
 				</p>
 				<p>
-					<span class="text-green-400">INFO</span> <span class="text-muted-foreground">Tunnel established at</span>
-					<span class="text-gradient"> myapp.{relayDomain}</span>
+					<span class="text-signal">INFO</span> <span class="text-muted-foreground">Tunnel established at</span>
+					<span class="brand-text font-semibold"> myapp.{relayDomain}</span>
 				</p>
 			</div>
 		</Card.Root>
@@ -283,7 +290,7 @@
 <section id="features" class="border-t border-border py-24">
 	<div class="mx-auto max-w-6xl px-4">
 		<div class="mb-14 flex flex-col items-center gap-4 text-center">
-			<Badge variant="outline" class="rounded-full border-primary/30 bg-primary/5">Features</Badge>
+			<Badge variant="outline" class="rounded-full border-border text-muted-foreground">Features</Badge>
 			<h2 class="text-4xl font-extrabold tracking-tight">Everything you need to tunnel</h2>
 			<p class="max-w-md text-muted-foreground">
 				Built for developers who want reliability, flexibility, and freedom.
@@ -292,12 +299,12 @@
 
 		<div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 			{#each features as feature}
-				<Card.Root class="group transition-all duration-200 hover:-translate-y-1 hover:border-primary/30">
+				<Card.Root class="transition-colors duration-200 hover:border-brand/40">
 					<Card.Content class="flex flex-col gap-3">
 						<div
-							class="flex size-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-400 to-indigo-600 text-white shadow-sm shadow-indigo-500/20"
+							class="flex size-11 items-center justify-center rounded-xl bg-brand/10 text-brand ring-1 ring-inset ring-brand/15"
 						>
-							<feature.icon size={18} />
+							<feature.icon size={19} />
 						</div>
 						<h3 class="font-bold">{feature.title}</h3>
 						<p class="text-sm leading-relaxed text-muted-foreground">{feature.description}</p>
@@ -319,7 +326,7 @@
 			class="ml-auto shrink-0 text-muted-foreground transition-colors hover:text-foreground"
 		>
 			{#if copied === code}
-				<Check size={13} class="text-green-400" />
+				<Check size={13} class="text-signal" />
 			{:else}
 				<Copy size={13} />
 			{/if}
@@ -328,11 +335,11 @@
 {/snippet}
 
 <!-- HOW IT WORKS -->
-<section id="how-it-works" class="relative overflow-hidden border-t border-border py-24">
-	<div class="brand-glow brand-glow-center pointer-events-none absolute"></div>
+<section id="how-it-works" class="relative overflow-hidden border-t border-border bg-muted/30 py-24">
+	<div class="dot-grid dot-grid-fade pointer-events-none absolute inset-0 opacity-70"></div>
 	<div class="relative mx-auto max-w-6xl px-4">
 		<div class="mb-14 flex flex-col items-center gap-4 text-center">
-			<Badge variant="outline" class="rounded-full border-primary/30 bg-primary/5">How it works</Badge>
+			<Badge variant="outline" class="rounded-full border-border text-muted-foreground">How it works</Badge>
 			<h2 class="text-4xl font-extrabold tracking-tight">Up and running in 60 seconds</h2>
 			<p class="text-muted-foreground">Three commands. That's it.</p>
 		</div>
@@ -342,12 +349,11 @@
 				<Card.Root class="flex flex-col">
 					<Card.Content class="flex flex-1 flex-col gap-3">
 						<div class="flex items-center gap-3">
-							<Badge
-								variant="outline"
-								class="rounded-lg border-primary/30 bg-primary/5 font-mono text-gradient"
+							<span
+								class="flex size-9 items-center justify-center rounded-lg bg-brand/10 font-mono text-sm font-bold text-brand ring-1 ring-inset ring-brand/15"
 							>
 								{step.number}
-							</Badge>
+							</span>
 							<h3 class="text-lg font-bold">{step.title}</h3>
 						</div>
 						<p class="text-sm leading-relaxed text-muted-foreground">{step.description}</p>
@@ -382,15 +388,14 @@
 <!-- OPEN SOURCE -->
 <section class="border-t border-border py-16">
 	<div class="mx-auto max-w-6xl px-4">
-		<Card.Root class="relative overflow-hidden border-primary/20">
-			<div class="brand-glow brand-glow-corner pointer-events-none absolute"></div>
+		<Card.Root class="relative overflow-hidden">
 			<Card.Content class="relative flex flex-col gap-8 md:flex-row md:items-center md:gap-12">
 				<div class="flex flex-col gap-4">
 					<div class="flex items-center gap-4">
 						<div
-							class="flex size-14 items-center justify-center rounded-2xl border border-primary/25 bg-primary/10 text-foreground"
+							class="flex size-14 items-center justify-center rounded-2xl bg-foreground text-background"
 						>
-							<Icon icon="simple-icons:github" width="28" height="28" />
+							<Icon icon="simple-icons:github" width="26" height="26" />
 						</div>
 						<div>
 							<h2 class="text-2xl font-extrabold tracking-tight">Built in the open</h2>
@@ -404,7 +409,7 @@
 					<div class="flex flex-wrap gap-3">
 						{#each ['MIT Licensed', 'Self-hostable', 'Community-driven', 'No telemetry'] as check}
 							<Badge variant="outline" class="gap-1.5 text-muted-foreground">
-								<CheckCircle size={12} class="text-green-400" />
+								<CheckCircle size={12} class="text-signal" />
 								{check}
 							</Badge>
 						{/each}
@@ -416,38 +421,6 @@
 						View on GitHub
 						<ArrowRight size={16} />
 					</Button>
-				</div>
-			</Card.Content>
-		</Card.Root>
-	</div>
-</section>
-
-<!-- CTA BANNER -->
-<section class="border-t border-border py-24">
-	<div class="mx-auto max-w-2xl px-4">
-		<Card.Root class="relative overflow-hidden">
-			<div class="brand-glow brand-glow-center pointer-events-none absolute"></div>
-			<Card.Content class="relative flex flex-col items-center gap-5 py-6 text-center">
-				<h2 class="text-4xl font-extrabold tracking-tight">Ready to share your localhost?</h2>
-				<p class="text-muted-foreground">
-					Create a free account and get persistent domains, subdomains, and more.
-				</p>
-				<div class="flex flex-wrap justify-center gap-3 pt-2">
-					{#if data.user}
-						<Button href="/dashboard" size="lg">
-							<LayoutDashboard size={18} />
-							Go to Dashboard
-						</Button>
-					{:else}
-						<Button href="/register" size="lg">
-							Get started for free
-							<ArrowRight size={18} />
-						</Button>
-						<Button href="/login" variant="outline" size="lg" class="gap-2">
-							<LogIn size={16} />
-							Sign in
-						</Button>
-					{/if}
 				</div>
 			</Card.Content>
 		</Card.Root>
@@ -479,55 +452,3 @@
 	</div>
 </footer>
 
-<style>
-	.text-gradient {
-		background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-	}
-
-	/* Brand ambient glows — indigo accent */
-	.brand-glow {
-		border-radius: 50%;
-		filter: blur(90px);
-		opacity: 0.5;
-	}
-
-	.brand-glow-1 {
-		width: 480px;
-		height: 480px;
-		background: radial-gradient(circle, oklch(0.6 0.2 272 / 0.25) 0%, transparent 70%);
-		top: -160px;
-		left: 50%;
-		transform: translateX(-70%);
-	}
-
-	.brand-glow-2 {
-		width: 420px;
-		height: 420px;
-		background: radial-gradient(circle, oklch(0.62 0.18 268 / 0.2) 0%, transparent 70%);
-		top: -60px;
-		left: 50%;
-		transform: translateX(20%);
-	}
-
-	.brand-glow-center {
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		border-radius: 0;
-		background: radial-gradient(ellipse at center, oklch(0.6 0.2 272 / 0.12) 0%, transparent 70%);
-		filter: none;
-	}
-
-	.brand-glow-corner {
-		inset: 0;
-		width: 100%;
-		height: 100%;
-		border-radius: 0;
-		background: radial-gradient(circle at 85% 15%, oklch(0.6 0.2 272 / 0.15) 0%, transparent 55%);
-		filter: none;
-		opacity: 1;
-	}
-</style>
