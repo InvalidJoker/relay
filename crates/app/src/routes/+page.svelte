@@ -222,7 +222,7 @@
 	<div class="dot-grid dot-grid-fade pointer-events-none absolute inset-0"></div>
 	<div class="brand-halo pointer-events-none absolute left-1/2 top-[-120px] size-[520px] -translate-x-1/2 rounded-full"></div>
 
-	<div class="relative mx-auto flex max-w-3xl flex-col items-center gap-6 px-4 pb-16 pt-20 text-center md:pt-24">
+	<div class="relative mx-auto flex max-w-3xl flex-col items-center gap-5 px-4 pb-16 pt-10 text-center md:pt-14">
 		<Badge variant="outline" class="gap-2 rounded-full border-border bg-card/70 px-3 py-1 text-foreground backdrop-blur">
 			<span class="relative flex size-2">
 				<span class="absolute inline-flex size-full animate-ping rounded-full bg-signal opacity-70"></span>
@@ -260,7 +260,7 @@
 		</div>
 
 		<!-- Showcase: the relay hop, then the terminal that produces it -->
-		<Card.Root class="mt-6 w-full max-w-2xl overflow-hidden p-0 text-left shadow-xl shadow-brand/5">
+		<Card.Root class="mt-3 w-full max-w-2xl overflow-hidden p-0 text-left shadow-xl shadow-brand/5">
 			<div class="dot-grid px-6 py-8">
 				<RelayHop remote="myapp.{relayDomain}" />
 			</div>

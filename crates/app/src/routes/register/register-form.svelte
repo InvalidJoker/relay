@@ -9,6 +9,7 @@
     } from '$lib/components/ui/field';
     import { Input } from '$lib/components/ui/input';
     import { Button } from '$lib/components/ui/button';
+    import RelayHop from '$lib/components/relay-hop.svelte';
 
     import type { ActionData } from './$types';
 
@@ -61,7 +62,7 @@
                 </Field>
 
                 {#if form?.message}
-                    <p class="text-sm text-red-500">
+                    <p class="text-sm text-destructive">
                         {form.message}
                     </p>
                 {/if}
@@ -84,12 +85,16 @@
             </FieldGroup>
         </form>
 
-        <div class="bg-muted relative hidden md:block">
-            <img
-                    src="/placeholder.svg"
-                    alt=""
-                    class="absolute inset-0 h-full w-full object-cover"
-            />
+        <div class="bg-muted relative hidden flex-col items-center justify-center gap-8 overflow-hidden p-8 md:flex">
+            <div class="dot-grid dot-grid-fade pointer-events-none absolute inset-0"></div>
+            <div class="brand-halo pointer-events-none absolute left-1/2 top-1/2 size-64 -translate-x-1/2 -translate-y-1/2 rounded-full"></div>
+            <div class="relative w-full max-w-xs">
+                <RelayHop remote="myapp.relay" />
+            </div>
+            <div class="relative text-center">
+                <p class="text-lg font-bold tracking-tight">Persistent domains, free</p>
+                <p class="mt-1 text-sm text-muted-foreground">Claim subdomains and reserved ports in seconds.</p>
+            </div>
         </div>
     </Card.Content>
 </Card.Root>

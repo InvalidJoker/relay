@@ -9,7 +9,6 @@
 	import * as Table from '$lib/components/ui/table';
 	import { Plug, Globe, Link2, Plus, Trash2, AlertCircle } from 'lucide-svelte';
 	import { env } from '$env/dynamic/public';
-	import {Alert} from "$lib/components/ui/alert";
 
 	let { data, form }: { data: PageServerData; form: ActionData } = $props();
 
@@ -19,30 +18,26 @@
 			used: data.ports.length,
 			max: 2,
 			icon: Plug,
-			color: '#818cf8'
+			color: 'var(--brand)'
 		},
 		{
 			label: 'Custom Domains',
 			used: data.domains.length,
 			max: 1,
 			icon: Globe,
-			color: '#6366f1'
+			color: 'var(--signal)'
 		},
 		{
 			label: 'Subdomains',
 			used: data.subdomains.length,
 			max: 3,
 			icon: Link2,
-			color: '#4f46e5'
+			color: 'var(--brand-soft)'
 		}
 	]);
 </script>
 
 <div class="page">
-	<Alert variant="destructive">
-		<AlertCircle size={16} />
-		This dashboard is temporary, and will be replaced soon
-	</Alert>
 	<!-- Header -->
 	<div class="page-header">
 		<div>
@@ -361,13 +356,13 @@
 		font-size: 1.625rem;
 		font-weight: 800;
 		letter-spacing: -0.025em;
-		color: rgba(255, 255, 255, 0.95);
+		color: var(--foreground);
 		margin: 0;
 	}
 
 	.page-subtitle {
 		font-size: 0.9rem;
-		color: rgba(255, 255, 255, 0.4);
+		color: var(--muted-foreground);
 		margin: 0.2rem 0 0;
 	}
 
@@ -378,9 +373,9 @@
 		gap: 0.5rem;
 		padding: 0.875rem 1.125rem;
 		border-radius: 0.75rem;
-		background: rgba(239, 68, 68, 0.1);
-		border: 1px solid rgba(239, 68, 68, 0.25);
-		color: #fca5a5;
+		background: color-mix(in oklch, var(--destructive) 12%, transparent);
+		border: 1px solid color-mix(in oklch, var(--destructive) 30%, transparent);
+		color: var(--destructive);
 		font-size: 0.875rem;
 	}
 
@@ -392,19 +387,31 @@
 	}
 
 	.stat-card {
+		position: relative;
 		padding: 1.25rem;
-		border-radius: 0.875rem;
-		background: rgba(255, 255, 255, 0.03);
-		border: 1px solid rgba(255, 255, 255, 0.07);
+		border-radius: var(--radius);
+		background: var(--card);
+		border: 1px solid var(--border);
 		display: flex;
 		flex-direction: column;
 		gap: 0.75rem;
-		transition: background 0.2s, border-color 0.2s;
+		overflow: hidden;
+		transition: border-color 0.2s, box-shadow 0.2s;
+	}
+
+	/* Signature accent: a thin colored rail on the top edge of each stat card */
+	.stat-card::before {
+		content: '';
+		position: absolute;
+		inset: 0 0 auto 0;
+		height: 2px;
+		background: var(--icon-color);
+		opacity: 0.7;
 	}
 
 	.stat-card:hover {
-		background: rgba(255, 255, 255, 0.05);
-		border-color: rgba(255, 255, 255, 0.1);
+		border-color: color-mix(in oklch, var(--icon-color) 40%, var(--border));
+		box-shadow: 0 2px 12px color-mix(in oklch, var(--icon-color) 12%, transparent);
 	}
 
 	.stat-header {
@@ -416,12 +423,12 @@
 	.stat-label {
 		font-size: 0.8125rem;
 		font-weight: 500;
-		color: rgba(255, 255, 255, 0.45);
+		color: var(--muted-foreground);
 	}
 
 	.stat-icon {
-		width: 28px;
-		height: 28px;
+		width: 30px;
+		height: 30px;
 		border-radius: 0.5rem;
 		background: color-mix(in oklch, var(--icon-color) 15%, transparent);
 		display: flex;
@@ -446,14 +453,15 @@
 	.stat-sep,
 	.stat-max {
 		font-size: 1.25rem;
-		color: rgba(255, 255, 255, 0.25);
+		color: var(--muted-foreground);
+		opacity: 0.6;
 		font-weight: 500;
 	}
 
 	.stat-bar {
-		height: 3px;
+		height: 4px;
 		border-radius: 999px;
-		background: rgba(255, 255, 255, 0.07);
+		background: var(--muted);
 		overflow: hidden;
 	}
 
@@ -473,8 +481,8 @@
 	:global(.tabs-list) {
 		display: flex;
 		gap: 0.25rem;
-		background: rgba(255, 255, 255, 0.04) !important;
-		border: 1px solid rgba(255, 255, 255, 0.07) !important;
+		background: var(--muted) !important;
+		border: 1px solid var(--border) !important;
 		border-radius: 0.75rem !important;
 		padding: 0.3rem !important;
 	}
@@ -493,9 +501,9 @@
 	}
 
 	:global(.tab-card) {
-		background: rgba(255, 255, 255, 0.02) !important;
-		border: 1px solid rgba(255, 255, 255, 0.07) !important;
-		border-radius: 0.875rem !important;
+		background: var(--card) !important;
+		border: 1px solid var(--border) !important;
+		border-radius: var(--radius) !important;
 	}
 
 	/* ── TABLE ── */
@@ -506,20 +514,20 @@
 	.resource-code {
 		font-family: 'SF Mono', 'Fira Code', monospace;
 		font-size: 0.875rem;
-		color: #a5b4fc;
-		background: rgba(99, 102, 241, 0.1);
+		color: var(--brand);
+		background: color-mix(in oklch, var(--brand) 12%, transparent);
 		padding: 0.2rem 0.5rem;
 		border-radius: 0.375rem;
 	}
 
 	:global(.remove-btn) {
-		color: rgba(255, 100, 100, 0.6) !important;
+		color: color-mix(in oklch, var(--destructive) 70%, transparent) !important;
 		transition: color 0.15s, background 0.15s !important;
 	}
 
 	:global(.remove-btn:hover) {
-		color: rgb(248, 113, 113) !important;
-		background: rgba(239, 68, 68, 0.1) !important;
+		color: var(--destructive) !important;
+		background: color-mix(in oklch, var(--destructive) 12%, transparent) !important;
 	}
 
 	/* ── EMPTY STATE ── */
@@ -529,27 +537,28 @@
 		align-items: center;
 		padding: 2.5rem;
 		border-radius: 0.75rem;
-		border: 1px dashed rgba(255, 255, 255, 0.1);
-		background: rgba(255, 255, 255, 0.015);
+		border: 1px dashed var(--border);
+		background: var(--muted);
 		margin-bottom: 1.5rem;
 		gap: 0.5rem;
 	}
 
 	:global(.empty-icon) {
-		color: rgba(255, 255, 255, 0.2) !important;
+		color: var(--muted-foreground) !important;
+		opacity: 0.5;
 		margin-bottom: 0.25rem;
 	}
 
 	.empty-title {
 		font-size: 0.9375rem;
 		font-weight: 600;
-		color: rgba(255, 255, 255, 0.5);
+		color: var(--foreground);
 		margin: 0;
 	}
 
 	.empty-desc {
 		font-size: 0.8125rem;
-		color: rgba(255, 255, 255, 0.3);
+		color: var(--muted-foreground);
 		margin: 0;
 		text-align: center;
 	}
@@ -557,8 +566,8 @@
 	/* ── ADD FORM ── */
 	.add-form {
 		border-radius: 0.75rem;
-		border: 1px solid rgba(255, 255, 255, 0.07);
-		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid var(--border);
+		background: var(--muted);
 		padding: 1.25rem;
 		display: flex;
 		flex-direction: column;
@@ -571,7 +580,7 @@
 		gap: 0.4rem;
 		font-size: 0.9rem;
 		font-weight: 600;
-		color: rgba(255, 255, 255, 0.7);
+		color: var(--foreground);
 		margin: 0;
 	}
 
@@ -601,7 +610,7 @@
 
 	.subdomain-suffix {
 		font-size: 0.875rem;
-		color: rgba(255, 255, 255, 0.35);
+		color: var(--muted-foreground);
 		white-space: nowrap;
 	}
 

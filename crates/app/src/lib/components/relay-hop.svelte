@@ -47,14 +47,13 @@
 		justify-content: center;
 		gap: 0.5rem;
 		width: 100%;
+		/* room for the absolutely-positioned labels below the nodes */
+		padding-bottom: 1.9rem;
 	}
 
 	.node {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		gap: 0.55rem;
-		flex-shrink: 0;
+		position: relative;
+		flex: 0 0 auto;
 	}
 
 	.node-dot {
@@ -83,6 +82,10 @@
 	}
 
 	.node-label {
+		position: absolute;
+		top: calc(100% + 0.55rem);
+		left: 50%;
+		transform: translateX(-50%);
 		font-size: 0.72rem;
 		font-family: 'SF Mono', ui-monospace, 'Fira Code', monospace;
 		color: var(--muted-foreground);
@@ -95,7 +98,6 @@
 		min-width: 36px;
 		max-width: 120px;
 		height: 2px;
-		margin-bottom: 1.6rem;
 		border-radius: 999px;
 		background-image: linear-gradient(
 			to right,
