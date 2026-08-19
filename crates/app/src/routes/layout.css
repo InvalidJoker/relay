@@ -2,6 +2,7 @@
 @import 'tw-animate-css';
 @import 'shadcn-svelte/tailwind.css';
 @import '@fontsource-variable/geist';
+@import '@fontsource-variable/geist-mono';
 
 @custom-variant dark (&:is(.dark *));
 @plugin '@tailwindcss/forms';
@@ -48,9 +49,9 @@
 }
 
 @theme inline {
-	/* Geist everywhere — no monospace faces anywhere in the app. */
+	/* Geist for the whole UI; Geist Mono only on code and terminal surfaces. */
 	--font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
-	--font-mono: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
+	--font-mono: 'Geist Mono Variable', ui-monospace, SFMono-Regular, monospace;
 
 	--color-background: var(--background);
 	--color-foreground: var(--foreground);

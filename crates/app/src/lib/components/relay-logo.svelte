@@ -36,7 +36,7 @@
 	</span>
 	{#if showWordmark}
 		<span
-			class="font-semibold tracking-tight text-foreground"
+			class="font-mono font-semibold tracking-tight text-foreground"
 			style="font-size: {Math.round(size * 0.56)}px"
 		>
 			relay

@@ -188,7 +188,7 @@ volumes:
 		<dl class="divide-y divide-border">
 			{#each rows as row (row.name)}
 				<div class="grid gap-1 px-4 py-3 sm:grid-cols-[minmax(0,14rem)_1fr] sm:gap-4">
-					<dt class="text-sm font-medium text-primary">{row.name}</dt>
+					<dt class="font-mono text-sm font-medium text-primary">{row.name}</dt>
 					<dd class="text-sm leading-relaxed text-muted-foreground">{row.description}</dd>
 				</div>
 			{/each}
@@ -259,7 +259,7 @@ volumes:
 				<h2 class="text-2xl font-semibold tracking-tight text-foreground">How it works</h2>
 				<p class="mt-4 leading-relaxed text-muted-foreground">
 					The CLI opens a long-lived control connection to the relay server on TCP port
-					<span class="text-foreground">2550</span> and sends a hello message containing your access
+					<code class="font-mono text-[0.9em] text-foreground">2550</code> and sends a hello message containing your access
 					token and what you want to expose. The server asks the web app whether you're allowed to
 					have it, then starts publishing traffic to you.
 				</p>
@@ -279,9 +279,9 @@ volumes:
 					{/each}
 				</ol>
 				<p class="mt-6 leading-relaxed text-muted-foreground">
-					HTTP requests are routed by the <span class="text-foreground">Host</span> header, so a
+					HTTP requests are routed by the <code class="font-mono text-[0.9em] text-foreground">Host</code> header, so a
 					tunnel is only reachable at the exact hostname it registered. Unknown hostnames get a
-					<span class="text-foreground">404 Not Found</span>.
+					<code class="font-mono text-[0.9em] text-foreground">404 Not Found</code>.
 				</p>
 			</section>
 
@@ -290,12 +290,12 @@ volumes:
 				<h2 class="text-2xl font-semibold tracking-tight text-foreground">Install the CLI</h2>
 				<p class="mt-4 leading-relaxed text-muted-foreground">
 					The installers detect your OS and CPU architecture and drop a single
-					<span class="text-foreground">relay</span> binary on your PATH.
+					<code class="font-mono text-[0.9em] text-foreground">relay</code> binary on your PATH.
 				</p>
 
 				<h3 class="mt-8 text-lg font-medium text-foreground">macOS / Linux</h3>
 				<p class="mt-2 text-sm leading-relaxed text-muted-foreground">
-					Installs to <span class="text-foreground">/usr/local/bin</span>.
+					Installs to <code class="font-mono text-[0.9em] text-foreground">/usr/local/bin</code>.
 				</p>
 				<div class="mt-3"><CodeBlock code={INSTALL_COMMANDS.unix.code} /></div>
 				<p class="mt-4 text-sm leading-relaxed text-muted-foreground">
@@ -312,8 +312,7 @@ volumes:
 
 				<h3 class="mt-8 text-lg font-medium text-foreground">Windows</h3>
 				<p class="mt-2 text-sm leading-relaxed text-muted-foreground">
-					Run in PowerShell. Installs to <span class="text-foreground">%LOCALAPPDATA%\relay\bin</span
-					> and adds it to your user PATH.
+					Run in PowerShell. Installs to <code class="font-mono text-[0.9em] text-foreground">%LOCALAPPDATA%\relay\bin</code> and adds it to your user PATH.
 				</p>
 				<div class="mt-3 space-y-3">
 					<CodeBlock code={INSTALL_COMMANDS.windows.code} prompt=">" />
@@ -326,7 +325,7 @@ volumes:
 				<h3 class="mt-8 text-lg font-medium text-foreground">From source</h3>
 				<p class="mt-2 text-sm leading-relaxed text-muted-foreground">
 					Requires a stable Rust toolchain (edition 2024). The binary lands at
-					<span class="text-foreground">target/release/relay</span>.
+					<code class="font-mono text-[0.9em] text-foreground">target/release/relay</code>.
 				</p>
 				<div class="mt-3">
 					<CodeBlock code={INSTALL_COMMANDS.source.code} prompt={null} />
@@ -353,10 +352,10 @@ volumes:
 
 				<h3 class="mt-8 text-lg font-medium text-foreground">Where credentials live</h3>
 				<p class="mt-2 leading-relaxed text-muted-foreground">
-					Credentials are written to <span class="text-foreground">~/.config/relay.toml</span>:
+					Credentials are written to <code class="font-mono text-[0.9em] text-foreground">~/.config/relay.toml</code>:
 				</p>
 				<div class="mt-3 overflow-hidden rounded-lg border border-border bg-card">
-					<pre class="overflow-x-auto p-4 text-sm leading-relaxed text-muted-foreground">{credentialsExample}</pre>
+					<pre class="overflow-x-auto p-4 font-mono text-[13px] leading-relaxed text-muted-foreground">{credentialsExample}</pre>
 				</div>
 				<p class="mt-4 leading-relaxed text-muted-foreground">
 					Keep a second identity — say a personal account and a self-hosted server — in separate
@@ -380,9 +379,9 @@ volumes:
 				</p>
 				<div class="mt-4"><CodeBlock code="relay http 3000" /></div>
 				<p class="mt-4 leading-relaxed text-muted-foreground">
-					Without <span class="text-foreground">--subdomain</span>, the server generates a readable
+					Without <code class="font-mono text-[0.9em] text-foreground">--subdomain</code>, the server generates a readable
 					random name like
-					<span class="text-foreground">swiftfalcon.{RELAY_DOMAIN}</span> for the session. Ask for a
+					<code class="font-mono text-[0.9em] text-foreground">swiftfalcon.{RELAY_DOMAIN}</code> for the session. Ask for a
 					specific name — a subdomain or a custom domain you reserved on your account:
 				</p>
 				<div class="mt-3 space-y-3">
@@ -392,7 +391,7 @@ volumes:
 				<p class="mt-4 leading-relaxed text-muted-foreground">
 					The same flag takes both: the server first looks for a subdomain you own, then a custom
 					domain. If neither is yours, the tunnel is refused with
-					<span class="text-foreground">403 Forbidden</span>.
+					<code class="font-mono text-[0.9em] text-foreground">403 Forbidden</code>.
 				</p>
 				{@render callout(
 					'info',
@@ -435,7 +434,7 @@ volumes:
 				</div>
 				<p class="mt-4 leading-relaxed text-muted-foreground">
 					The relay server checks credentials itself and returns
-					<span class="text-foreground">401 Unauthorized</span> before any request reaches your
+					<code class="font-mono text-[0.9em] text-foreground">401 Unauthorized</code> before any request reaches your
 					machine. Comparison is constant-time, so it doesn't leak the password through timing.
 				</p>
 				{@render callout(
@@ -455,8 +454,8 @@ volumes:
 					Config files & relay run
 				</h2>
 				<p class="mt-4 leading-relaxed text-muted-foreground">
-					Add <span class="text-foreground">--save</span> to any http or tcp command and the CLI
-					writes a <span class="text-foreground">relay.toml</span> into the current directory describing
+					Add <code class="font-mono text-[0.9em] text-foreground">--save</code> to any http or tcp command and the CLI
+					writes a <code class="font-mono text-[0.9em] text-foreground">relay.toml</code> into the current directory describing
 					that tunnel:
 				</p>
 				<div class="mt-4"><CodeBlock code="relay http 3000 --subdomain myapp --save" /></div>
@@ -468,10 +467,10 @@ volumes:
 
 				<h3 class="mt-8 text-lg font-medium text-foreground">File format</h3>
 				<div class="mt-3 overflow-hidden rounded-lg border border-border bg-card">
-					<pre class="overflow-x-auto p-4 text-sm leading-relaxed text-muted-foreground">{configExample}</pre>
+					<pre class="overflow-x-auto p-4 font-mono text-[13px] leading-relaxed text-muted-foreground">{configExample}</pre>
 				</div>
 				<div class="mt-3 overflow-hidden rounded-lg border border-border bg-card">
-					<pre class="overflow-x-auto p-4 text-sm leading-relaxed text-muted-foreground">{tcpConfigExample}</pre>
+					<pre class="overflow-x-auto p-4 font-mono text-[13px] leading-relaxed text-muted-foreground">{tcpConfigExample}</pre>
 				</div>
 				{@render envTable('relay.toml keys', [
 					{ name: 'type', description: 'Either "Http" or "Tcp". Decides which fields are read.' },
@@ -492,7 +491,7 @@ volumes:
 				<p class="mt-4 leading-relaxed text-muted-foreground">
 					Because it holds no secrets beyond the basic-auth pair, this file is safe to commit
 					alongside a project — teammates who are signed in can run
-					<span class="text-foreground">relay run</span> and get the same setup.
+					<code class="font-mono text-[0.9em] text-foreground">relay run</code> and get the same setup.
 				</p>
 			</section>
 
@@ -508,7 +507,7 @@ volumes:
 					<dl class="divide-y divide-border">
 						{#each cliCommands as row (row.command)}
 							<div class="grid gap-1 px-4 py-3 sm:grid-cols-[minmax(0,16rem)_1fr] sm:gap-4">
-								<dt class="text-sm font-medium text-primary">{row.command}</dt>
+								<dt class="font-mono text-sm font-medium text-primary">{row.command}</dt>
 								<dd class="text-sm leading-relaxed text-muted-foreground">{row.description}</dd>
 							</div>
 						{/each}
@@ -537,7 +536,7 @@ volumes:
 				<p class="mt-6 leading-relaxed text-muted-foreground">
 					These limits apply to the public deployment; administrators are exempt, and on your own
 					server you decide. Unauthenticated tunnels can be allowed entirely by setting
-					<span class="text-foreground">REQUIRE_AUTH=false</span> on the web app.
+					<code class="font-mono text-[0.9em] text-foreground">REQUIRE_AUTH=false</code> on the web app.
 				</p>
 				<p class="mt-4 leading-relaxed text-muted-foreground">
 					Releasing a reservation frees the name or port for everyone else, so only hold what you
@@ -552,9 +551,9 @@ volumes:
 				</h2>
 				<p class="mt-4 leading-relaxed text-muted-foreground">
 					A <span class="text-foreground">subdomain</span> is a name under
-					<span class="text-foreground">{RELAY_DOMAIN}</span> — reserve
-					<span class="text-foreground">myapp</span> in the dashboard and
-					<span class="text-foreground">myapp.{RELAY_DOMAIN}</span> is yours until you release it. Nothing
+					<code class="font-mono text-[0.9em] text-foreground">{RELAY_DOMAIN}</code> — reserve
+					<code class="font-mono text-[0.9em] text-foreground">myapp</code> in the dashboard and
+					<code class="font-mono text-[0.9em] text-foreground">myapp.{RELAY_DOMAIN}</code> is yours until you release it. Nothing
 					else to configure.
 				</p>
 				<p class="mt-4 leading-relaxed text-muted-foreground">
@@ -568,11 +567,11 @@ volumes:
 						DNS record
 					</div>
 					<div class="grid gap-1 px-4 py-3 sm:grid-cols-[minmax(0,10rem)_1fr] sm:gap-4">
-						<span class="text-sm font-medium text-primary">A / CNAME</span>
+						<span class="font-mono text-sm font-medium text-primary">A / CNAME</span>
 						<span class="text-sm leading-relaxed text-muted-foreground">
-							Point <span class="text-foreground">tunnel.example.com</span> at the relay server's IP
+							Point <code class="font-mono text-[0.9em] text-foreground">tunnel.example.com</code> at the relay server's IP
 							(A record), or at
-							<span class="text-foreground">{RELAY_DOMAIN}</span> (CNAME). Traffic then arrives with your
+							<code class="font-mono text-[0.9em] text-foreground">{RELAY_DOMAIN}</code> (CNAME). Traffic then arrives with your
 							hostname in the Host header, which is how the server finds your tunnel.
 						</span>
 					</div>
@@ -602,7 +601,7 @@ volumes:
 					>
 						compose.yml
 					</div>
-					<pre class="overflow-x-auto p-4 text-sm leading-relaxed text-muted-foreground">{composeExample}</pre>
+					<pre class="overflow-x-auto p-4 font-mono text-[13px] leading-relaxed text-muted-foreground">{composeExample}</pre>
 				</div>
 
 				<h3 class="mt-8 text-lg font-medium text-foreground">Ports to open</h3>
@@ -629,7 +628,7 @@ volumes:
 
 				<h3 class="mt-8 text-lg font-medium text-foreground">DNS for your deployment</h3>
 				<p class="mt-2 leading-relaxed text-muted-foreground">
-					Point a wildcard record — <span class="text-foreground">*.{RELAY_DOMAIN}</span> — at the relay
+					Point a wildcard record — <code class="font-mono text-[0.9em] text-foreground">*.{RELAY_DOMAIN}</code> — at the relay
 					server so every subdomain resolves, and an A record for the TCP hostname. The web app itself
 					can live anywhere reachable by both the browser and the relay container.
 				</p>

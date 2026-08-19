@@ -34,9 +34,9 @@
 						class="size-2 rounded-full bg-primary"
 						style="animation: relay-pulse 1.8s ease-in-out infinite"
 					></span>
-					<span class="text-xs text-muted-foreground">tunnel active</span>
+					<span class="font-mono text-xs text-muted-foreground">tunnel active</span>
 				</div>
-				<div class="space-y-1.5 text-sm">
+				<div class="space-y-1.5 font-mono text-[13px] leading-6">
 					<p class="text-foreground">
 						<span class="text-primary">$</span> relay http 3000 --subdomain ada
 					</p>

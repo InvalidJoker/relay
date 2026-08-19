@@ -84,7 +84,7 @@
 		{#each items as item (item.id)}
 			<div class="flex items-center justify-between gap-3 px-5 py-3.5">
 				<div class="flex min-w-0 flex-wrap items-center gap-x-3 gap-y-1">
-					<span class="truncate text-sm text-foreground">
+					<span class="truncate font-mono text-sm text-foreground">
 						{#if item.prefix}<span class="text-muted-foreground">{item.prefix}</span>{/if}{item.value}{#if item.suffix}<span
 								class="text-muted-foreground">{item.suffix}</span
 							>{/if}
@@ -115,7 +115,7 @@
 				class="flex flex-1 items-center rounded-md border border-input bg-background focus-within:border-ring focus-within:ring-2 focus-within:ring-ring/40"
 			>
 				{#if inputPrefix}
-					<span class="pl-3 text-sm text-muted-foreground">{inputPrefix}</span>
+					<span class="pl-3 font-mono text-sm text-muted-foreground">{inputPrefix}</span>
 				{/if}
 				<input
 					name={inputName}
@@ -125,10 +125,10 @@
 					required
 					disabled={atLimit}
 					placeholder={atLimit ? 'Limit reached' : placeholder}
-					class="w-full border-0 bg-transparent px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60"
+					class="w-full border-0 bg-transparent px-3 py-2 font-mono text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:ring-0 disabled:cursor-not-allowed disabled:opacity-60"
 				/>
 				{#if inputSuffix}
-					<span class="pr-3 text-sm text-muted-foreground">{inputSuffix}</span>
+					<span class="pr-3 font-mono text-sm text-muted-foreground">{inputSuffix}</span>
 				{/if}
 			</div>
 

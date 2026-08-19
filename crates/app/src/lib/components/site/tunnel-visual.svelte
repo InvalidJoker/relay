@@ -25,8 +25,8 @@
 			<Icon class="size-5" />
 		</div>
 		<div>
-			<p class="text-xs font-medium text-foreground">{label}</p>
-			<p class="text-[11px] text-muted-foreground">{sub}</p>
+			<p class="font-mono text-xs font-medium text-foreground">{label}</p>
+			<p class="font-mono text-[11px] text-muted-foreground">{sub}</p>
 		</div>
 	</div>
 {/snippet}
@@ -37,7 +37,7 @@
 			class="size-2 rounded-full bg-primary"
 			style="animation: relay-pulse 1.8s ease-in-out infinite"
 		></span>
-		<span class="text-xs text-muted-foreground">tunnel active</span>
+		<span class="font-mono text-xs text-muted-foreground">tunnel active</span>
 	</div>
 	<div class="flex items-center justify-between gap-2">
 		{@render node(Laptop, 'localhost', ':3000', false)}

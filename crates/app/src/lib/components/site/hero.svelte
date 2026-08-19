@@ -96,9 +96,9 @@
 					<span class="size-3 rounded-full bg-muted"></span>
 					<span class="size-3 rounded-full bg-muted"></span>
 					<span class="size-3 rounded-full bg-muted"></span>
-					<span class="ml-2 text-xs text-muted-foreground">relay — zsh</span>
+					<span class="ml-2 font-mono text-xs text-muted-foreground">relay — zsh</span>
 				</div>
-				<div class="space-y-1.5 p-4 text-sm leading-relaxed">
+				<div class="space-y-1.5 p-4 font-mono text-[13px] leading-6">
 					<p class="text-foreground">
 						<span class="text-primary">$</span> relay http 3000 --subdomain myapp
 					</p>

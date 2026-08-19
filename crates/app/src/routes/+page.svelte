@@ -2,9 +2,7 @@
 	import SiteHeader from '$lib/components/site/site-header.svelte';
 	import Hero from '$lib/components/site/hero.svelte';
 	import Features from '$lib/components/site/features.svelte';
-	import Install from '$lib/components/site/install.svelte';
 	import Quickstart from '$lib/components/site/quickstart.svelte';
-	import Usage from '$lib/components/site/usage.svelte';
 	import CtaFooter from '$lib/components/site/cta-footer.svelte';
 	import type { PageServerData } from './$types';
 
@@ -23,8 +21,6 @@
 	<SiteHeader user={data.user} />
 	<Hero user={data.user} />
 	<Features />
-	<Install />
 	<Quickstart />
-	<Usage />
 	<CtaFooter user={data.user} />
 </main>

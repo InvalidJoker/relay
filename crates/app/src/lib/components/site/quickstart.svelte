@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { browser } from '$app/environment';
-	import { Check, Copy } from 'lucide-svelte';
+	import { ArrowRight, Check, Copy } from 'lucide-svelte';
 	import SectionEyebrow from './section-eyebrow.svelte';
 	import { INSTALL_COMMANDS, RELAY_DOMAIN, type InstallTarget } from '$lib/site';
 
@@ -43,13 +43,20 @@
 		},
 		{
 			number: '02',
+			title: 'Login',
+			description: 'Authenticate with your Relay account.',
+			install: false,
+			command: 'relay login'
+		},
+		{
+			number: '03',
 			title: 'Connect',
 			description: 'Forward any local port to the internet with one command.',
 			install: false,
 			command: 'relay http 8080'
 		},
 		{
-			number: '03',
+			number: '04',
 			title: 'Share',
 			description: 'Instantly share the URL with anyone.',
 			install: false,
@@ -60,7 +67,7 @@
 
 {#snippet cmdBox(code: string)}
 	<div
-		class="flex items-start gap-2 rounded-lg border border-border bg-background/60 px-3 py-2 text-xs"
+		class="flex items-start gap-2 rounded-lg border border-border bg-background/60 px-3 py-2 font-mono text-xs leading-5"
 	>
 		<span class="break-all text-foreground">{code}</span>
 		<button
@@ -102,7 +109,7 @@
 				<div class="flex flex-col gap-3 rounded-xl border border-border bg-card p-6">
 					<div class="flex items-center gap-3">
 						<span
-							class="rounded-md bg-primary/10 px-2 py-0.5 text-sm text-primary ring-1 ring-inset ring-primary/25"
+							class="rounded-md bg-primary/10 px-2 py-0.5 font-mono text-sm text-primary ring-1 ring-inset ring-primary/25"
 						>
 							{step.number}
 						</span>
@@ -134,5 +141,12 @@
 				</div>
 			{/each}
 		</div>
+		<a
+			href="/docs"
+			class="group mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary transition-opacity hover:opacity-80"
+		>
+			Read the full documentation
+			<ArrowRight class="size-4 transition-transform group-hover:translate-x-0.5" />
+		</a>
 	</div>
 </section>
