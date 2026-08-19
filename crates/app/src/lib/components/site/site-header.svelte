@@ -8,7 +8,6 @@
 
 	const navLinks = [
 		{ href: '/#features', label: 'Features' },
-		{ href: '/#install', label: 'Install' },
 		{ href: '/#quickstart', label: 'Quickstart' },
 		{ href: '/docs', label: 'Docs' }
 	];

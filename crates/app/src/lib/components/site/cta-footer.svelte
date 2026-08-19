@@ -3,9 +3,12 @@
 	import CodeBlock from './code-block.svelte';
 	import GithubIcon from './github-icon.svelte';
 	import RelayLogo from '$lib/components/relay-logo.svelte';
-	import { INSTALL_COMMANDS, REPO_URL } from '$lib/site';
+	import { INSTALL_COMMANDS, REPO_URL, detectInstallOS } from '$lib/site';
 
 	let { user = null }: { user?: unknown } = $props();
+
+	// Show the command the visitor can actually paste into their own shell.
+	const install = $derived(INSTALL_COMMANDS[detectInstallOS()]);
 </script>
 
 <section class="border-t border-border">
@@ -25,7 +28,7 @@
 					install the CLI.
 				</p>
 				<div class="mx-auto mt-8 max-w-xl text-left">
-					<CodeBlock code={INSTALL_COMMANDS.unix.code} />
+					<CodeBlock code={install.code} prompt={install.prompt} />
 				</div>
 				<div class="mt-6 flex flex-col justify-center gap-3 sm:flex-row">
 					<a

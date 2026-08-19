@@ -1,3 +1,4 @@
+import { browser } from '$app/environment';
 import { env } from '$env/dynamic/public';
 
 export const REPO_URL = 'https://github.com/InvalidJoker/relay';
@@ -37,3 +38,12 @@ cargo build --release -p relay_cli`,
 } as const;
 
 export type InstallTarget = keyof typeof INSTALL_COMMANDS;
+
+/** The one-liner installers, i.e. everything except building from source. */
+export type InstallOS = Extract<InstallTarget, 'unix' | 'windows'>;
+
+/** Best guess at the visitor's platform, so we show the command they can actually run. */
+export function detectInstallOS(): InstallOS {
+	if (!browser) return 'unix';
+	return /win/i.test(navigator.userAgent) ? 'windows' : 'unix';
+}

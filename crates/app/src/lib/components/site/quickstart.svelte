@@ -1,22 +1,20 @@
 <script lang="ts">
-	import { browser } from '$app/environment';
 	import { ArrowRight, Check, Copy } from 'lucide-svelte';
 	import SectionEyebrow from './section-eyebrow.svelte';
-	import { INSTALL_COMMANDS, RELAY_DOMAIN, type InstallTarget } from '$lib/site';
+	import {
+		INSTALL_COMMANDS,
+		RELAY_DOMAIN,
+		detectInstallOS,
+		type InstallOS
+	} from '$lib/site';
 
 	// Only the one-liner installers here — "from source" lives in the Install section.
-	type OS = Extract<InstallTarget, 'unix' | 'windows'>;
-	const targets: [OS, (typeof INSTALL_COMMANDS)[OS]][] = [
+	const targets: [InstallOS, (typeof INSTALL_COMMANDS)[InstallOS]][] = [
 		['unix', INSTALL_COMMANDS.unix],
 		['windows', INSTALL_COMMANDS.windows]
 	];
 
-	function detectOS(): OS {
-		if (!browser) return 'unix';
-		return /win/i.test(navigator.userAgent) ? 'windows' : 'unix';
-	}
-
-	let osTab = $state<OS>(detectOS());
+	let osTab = $state<InstallOS>(detectInstallOS());
 	let copied = $state<string | null>(null);
 	let timer: ReturnType<typeof setTimeout> | undefined;
 
@@ -33,19 +31,21 @@
 		}
 	}
 
-	const steps = [
+	const steps = $derived([
 		{
 			number: '01',
 			title: 'Install',
 			description: 'Grab the relay CLI with a single command.',
 			install: true,
-			command: ''
+			prompt: INSTALL_COMMANDS[osTab].prompt,
+			command: INSTALL_COMMANDS[osTab].code
 		},
 		{
 			number: '02',
 			title: 'Login',
 			description: 'Authenticate with your Relay account.',
 			install: false,
+			prompt: '$',
 			command: 'relay login'
 		},
 		{
@@ -53,6 +53,7 @@
 			title: 'Connect',
 			description: 'Forward any local port to the internet with one command.',
 			install: false,
+			prompt: '$',
 			command: 'relay http 8080'
 		},
 		{
@@ -60,21 +61,25 @@
 			title: 'Share',
 			description: 'Instantly share the URL with anyone.',
 			install: false,
+			prompt: null,
 			command: `→ myapp.${RELAY_DOMAIN}`
 		}
-	];
+	]);
 </script>
 
-{#snippet cmdBox(code: string)}
+{#snippet cmdBox(code: string, prompt: string | null)}
 	<div
-		class="flex items-start gap-2 rounded-lg border border-border bg-background/60 px-3 py-2 font-mono text-xs leading-5"
+		class="flex items-center gap-2 rounded-lg border border-border bg-background/60 px-3 py-2.5 font-mono text-xs"
 	>
-		<span class="break-all text-foreground">{code}</span>
+		{#if prompt}
+			<span aria-hidden="true" class="shrink-0 select-none text-primary">{prompt}</span>
+		{/if}
+		<span class="flex-1 overflow-x-auto whitespace-nowrap text-foreground">{code}</span>
 		<button
 			type="button"
 			onclick={() => copy(code)}
 			aria-label="Copy command"
-			class="ml-auto shrink-0 text-muted-foreground transition-colors hover:text-foreground"
+			class="shrink-0 rounded text-muted-foreground transition-colors hover:text-foreground"
 		>
 			{#if copied === code}
 				<Check class="size-3.5 text-primary" />
@@ -94,59 +99,82 @@
 	></div>
 
 	<div class="relative mx-auto max-w-6xl px-5 py-20 md:py-24">
-		<div class="max-w-xl">
-			<SectionEyebrow>How it works</SectionEyebrow>
-			<h2
-				class="mt-4 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
+		<div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+			<div class="max-w-xl">
+				<SectionEyebrow>How it works</SectionEyebrow>
+				<h2
+					class="mt-4 text-balance text-3xl font-semibold tracking-tight text-foreground sm:text-4xl"
+				>
+					Up and running in 60 seconds
+				</h2>
+				<p class="mt-4 leading-relaxed text-muted-foreground">
+					Four commands from a cold machine to a public URL.
+				</p>
+			</div>
+
+			<!-- Platform switch drives the install command below -->
+			<div
+				role="tablist"
+				aria-label="Installation platform"
+				class="flex shrink-0 gap-1 self-start rounded-lg border border-border bg-secondary/50 p-1 md:self-auto"
 			>
-				Up and running in 60 seconds
-			</h2>
-			<p class="mt-4 leading-relaxed text-muted-foreground">Three commands. That's it.</p>
+				{#each targets as [id, target] (id)}
+					<button
+						type="button"
+						role="tab"
+						aria-selected={osTab === id}
+						onclick={() => (osTab = id)}
+						class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors {osTab === id
+							? 'bg-card text-foreground'
+							: 'text-muted-foreground hover:text-foreground'}"
+					>
+						{target.label}
+					</button>
+				{/each}
+			</div>
 		</div>
 
-		<div class="mt-12 grid gap-4 md:grid-cols-3">
-			{#each steps as step (step.number)}
-				<div class="flex flex-col gap-3 rounded-xl border border-border bg-card p-6">
-					<div class="flex items-center gap-3">
+		<ol class="mt-12 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+			{#each steps as step, i (step.number)}
+				<li class="relative flex">
+					<div
+						class="flex w-full flex-col gap-3 rounded-xl border border-border bg-card p-5 transition-colors hover:border-primary/30"
+					>
+						<div class="flex items-center gap-3">
+							<span
+								class="flex size-8 items-center justify-center rounded-lg bg-primary/10 font-mono text-xs font-medium text-primary ring-1 ring-inset ring-primary/25"
+							>
+								{step.number}
+							</span>
+							<h3 class="text-base font-medium text-foreground">{step.title}</h3>
+						</div>
+						<p class="text-sm leading-relaxed text-muted-foreground">{step.description}</p>
+						<div class="mt-auto pt-2">
+							{@render cmdBox(step.command, step.prompt)}
+						</div>
+					</div>
+
+					{#if i < steps.length - 1}
 						<span
-							class="rounded-md bg-primary/10 px-2 py-0.5 font-mono text-sm text-primary ring-1 ring-inset ring-primary/25"
+							aria-hidden="true"
+							class="absolute -right-4 top-1/2 hidden -translate-y-1/2 text-border xl:block"
 						>
-							{step.number}
+							<ArrowRight class="size-4" />
 						</span>
-						<h3 class="text-lg font-medium text-foreground">{step.title}</h3>
-					</div>
-					<p class="text-sm leading-relaxed text-muted-foreground">{step.description}</p>
-
-					<div class="mt-auto flex flex-col gap-2 pt-2">
-						{#if step.install}
-							<div class="flex gap-1 rounded-lg border border-border bg-secondary/50 p-1">
-								{#each targets as [id, target] (id)}
-									<button
-										type="button"
-										onclick={() => (osTab = id)}
-										class="flex-1 rounded-md px-2 py-1 text-xs font-medium transition-colors {osTab ===
-										id
-											? 'bg-card text-foreground'
-											: 'text-muted-foreground hover:text-foreground'}"
-									>
-										{target.label}
-									</button>
-								{/each}
-							</div>
-							{@render cmdBox(INSTALL_COMMANDS[osTab].code)}
-						{:else}
-							{@render cmdBox(step.command)}
-						{/if}
-					</div>
-				</div>
+					{/if}
+				</li>
 			{/each}
+		</ol>
+
+		<div class="mt-8 flex flex-wrap items-center gap-x-6 gap-y-3">
+			<a
+				href="/docs"
+				class="group inline-flex items-center gap-2 text-sm font-medium text-primary transition-opacity hover:opacity-80"
+			>
+				Read the full documentation
+				<ArrowRight class="size-4 transition-transform group-hover:translate-x-0.5" />
+			</a>
+			<p class="text-sm text-muted-foreground">{INSTALL_COMMANDS[osTab].note}</p>
 		</div>
-		<a
-			href="/docs"
-			class="group mt-6 inline-flex items-center gap-2 text-sm font-medium text-primary transition-opacity hover:opacity-80"
-		>
-			Read the full documentation
-			<ArrowRight class="size-4 transition-transform group-hover:translate-x-0.5" />
-		</a>
 	</div>
 </section>
