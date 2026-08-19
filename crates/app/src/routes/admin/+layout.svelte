@@ -38,7 +38,7 @@
 			</a>
 			<span class="hidden text-muted-foreground/40 md:block">/</span>
 			<span class="flex items-center gap-1.5 text-sm font-semibold">
-				<ShieldCheck size={15} class="text-indigo-400" />
+				<ShieldCheck size={15} class="text-primary" />
 				Admin
 			</span>
 		</div>
@@ -48,7 +48,7 @@
 				{#snippet child({ props })}
 					<Button variant="ghost" size="sm" class="gap-2" {...props}>
 						<div
-							class="flex size-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-400 to-indigo-600 text-[11px] font-bold text-white"
+							class="flex size-7 items-center justify-center rounded-full bg-primary/15 text-[11px] font-semibold text-primary"
 						>
 							{getInitials(data.user.name, data.user.email)}
 						</div>
@@ -103,7 +103,7 @@
 					class="flex items-center gap-2 border-b-2 px-3 py-3 text-sm font-medium transition-colors {isActive(
 						item.href
 					)
-						? 'border-indigo-400 text-foreground'
+						? 'border-primary text-foreground'
 						: 'border-transparent text-muted-foreground hover:text-foreground'}"
 				>
 					<item.icon size={15} />

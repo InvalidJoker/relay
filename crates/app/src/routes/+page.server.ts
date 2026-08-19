@@ -1,7 +1,6 @@
-import type { PageServerLoad } from './$types';
-import type {Actions} from "../../.svelte-kit/types/src/routes/dashboard/$types";
-import {auth} from "$lib/server/auth.ts";
-import {redirect} from "@sveltejs/kit";
+import type { Actions, PageServerLoad } from './$types';
+import { auth } from '$lib/server/auth';
+import { redirect } from '@sveltejs/kit';
 
 export const load: PageServerLoad = async (event) => {
 	return {

@@ -1,11 +1,16 @@
 <script lang="ts">
-	import LoginForm from './login-form.svelte';
+	import AuthShell from '$lib/components/site/auth-shell.svelte';
+	import AuthForm from '$lib/components/site/auth-form.svelte';
+	import type { ActionData } from './$types';
 
-	let { data, form } = $props();
+	let { form }: { form?: ActionData } = $props();
 </script>
 
-<div class="bg-muted flex min-h-svh items-center justify-center p-6">
-	<div class="w-full max-w-4xl">
-		<LoginForm {form} />
-	</div>
-</div>
+<svelte:head>
+	<title>Sign in — Relay</title>
+	<meta name="description" content="Sign in to your Relay account to manage tunnels and domains." />
+</svelte:head>
+
+<AuthShell>
+	<AuthForm mode="login" action="?/signInEmail" message={form?.message} />
+</AuthShell>

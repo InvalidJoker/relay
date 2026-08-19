@@ -1,11 +1,19 @@
 <script lang="ts">
-    import RegisterForm from './register-form.svelte';
+	import AuthShell from '$lib/components/site/auth-shell.svelte';
+	import AuthForm from '$lib/components/site/auth-form.svelte';
+	import type { ActionData } from './$types';
 
-    let { form } = $props();
+	let { form }: { form?: ActionData } = $props();
 </script>
 
-<div class="bg-muted flex min-h-svh items-center justify-center p-6">
-    <div class="w-full max-w-4xl">
-        <RegisterForm {form} />
-    </div>
-</div>
+<svelte:head>
+	<title>Create account — Relay</title>
+	<meta
+		name="description"
+		content="Create a free Relay account to reserve subdomains, ports, and custom domains."
+	/>
+</svelte:head>
+
+<AuthShell>
+	<AuthForm mode="register" action="?/signUpEmail" message={form?.message} />
+</AuthShell>

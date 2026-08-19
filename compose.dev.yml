@@ -6,7 +6,7 @@ services:
       - 5432:5432
     environment:
       - POSTGRES_PASSWORD=postgres
-      - POSTGRES_DB=backend
+      - POSTGRES_DB=relay
     volumes:
       - postgres_data:/var/lib/postgresql
 

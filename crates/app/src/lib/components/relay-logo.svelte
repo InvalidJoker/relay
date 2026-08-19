@@ -1,30 +1,45 @@
 <script lang="ts">
-	import favicon from '$lib/assets/favicon.svg';
+	let {
+		size = 28,
+		showWordmark = true,
+		class: className = ''
+	}: { size?: number; showWordmark?: boolean; class?: string } = $props();
 
-
-	let { size = 28, class: className = '' }: { size?: number; class?: string } = $props();
+	const mark = $derived(Math.round(size));
+	const glyph = $derived(Math.round(size * 0.64));
 </script>
 
-<div class="relay-logo {className}">
-	<img src={favicon} alt="Relay" width={size} height={size} />
-	<span class="relay-wordmark">Relay</span>
-</div>
-
-<style>
-	.relay-logo {
-		display: flex;
-		align-items: center;
-		gap: 8px;
-	}
-
-	.relay-wordmark {
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		line-height: 1;
-
-		background: linear-gradient(135deg, #818cf8, #6366f1);
-		-webkit-background-clip: text;
-		-webkit-text-fill-color: transparent;
-		background-clip: text;
-	}
-</style>
+<span class="inline-flex items-center gap-2.5 {className}">
+	<span
+		class="relative inline-flex items-center justify-center rounded-lg bg-primary/12 ring-1 ring-inset ring-primary/30"
+		style="width: {mark}px; height: {mark}px"
+	>
+		<svg
+			width={glyph}
+			height={glyph}
+			viewBox="0 0 24 24"
+			fill="none"
+			aria-hidden="true"
+			class="text-primary"
+		>
+			<!-- routing path: local -> node -> public -->
+			<path
+				d="M3 17 L9 17 L13 7 L21 7"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+			/>
+			<circle cx="3" cy="17" r="2" fill="currentColor" />
+			<circle cx="21" cy="7" r="2" class="fill-accent" />
+		</svg>
+	</span>
+	{#if showWordmark}
+		<span
+			class="font-semibold tracking-tight text-foreground"
+			style="font-size: {Math.round(size * 0.56)}px"
+		>
+			relay
+		</span>
+	{/if}
+</span>

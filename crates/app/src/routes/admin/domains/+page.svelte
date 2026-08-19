@@ -63,7 +63,7 @@
 						{#each data.domains as d (d.id)}
 							<Table.Row>
 								<Table.Cell>
-									<span class="rounded bg-indigo-500/10 px-1.5 py-0.5 font-mono text-sm text-indigo-300">
+									<span class="rounded bg-primary/10 px-1.5 py-0.5 text-sm text-primary">
 										{d.domain}
 									</span>
 								</Table.Cell>
@@ -108,7 +108,7 @@
 						{#each data.subdomains as s (s.id)}
 							<Table.Row>
 								<Table.Cell>
-									<span class="rounded bg-indigo-500/10 px-1.5 py-0.5 font-mono text-sm text-indigo-300">
+									<span class="rounded bg-primary/10 px-1.5 py-0.5 text-sm text-primary">
 										{s.subdomain}.{relayDomain}
 									</span>
 								</Table.Cell>
@@ -154,7 +154,7 @@
 						{#each data.ports as p (p.id)}
 							<Table.Row>
 								<Table.Cell>
-									<span class="rounded bg-indigo-500/10 px-1.5 py-0.5 font-mono text-sm text-indigo-300">
+									<span class="rounded bg-primary/10 px-1.5 py-0.5 text-sm text-primary">
 										{p.port}
 									</span>
 								</Table.Cell>
