@@ -31,7 +31,7 @@
 				stroke-linejoin="round"
 			/>
 			<circle cx="3" cy="17" r="2" fill="currentColor" />
-			<circle cx="21" cy="7" r="2" class="fill-accent" />
+			<circle cx="21" cy="7" r="2" class="fill-signal" />
 		</svg>
 	</span>
 	{#if showWordmark}

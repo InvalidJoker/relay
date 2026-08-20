@@ -1,10 +1,10 @@
 <script lang="ts">
 	import { page } from '$app/state';
-	import { enhance } from '$app/forms';
 	import RelayLogo from '$lib/components/relay-logo.svelte';
 	import { Button } from '$lib/components/ui/button';
 	import * as DropdownMenu from '$lib/components/ui/dropdown-menu';
-	import { LayoutDashboard, Users, Globe, LogOut, ChevronDown, ShieldCheck } from 'lucide-svelte';
+	import { LayoutDashboard, Users, Globe, ChevronDown, ShieldCheck } from 'lucide-svelte';
+	import SignOutButton from '$lib/components/site/sign-out-button.svelte';
 	import type { LayoutData } from './$types';
 
 	let { data, children }: { data: LayoutData; children: import('svelte').Snippet } = $props();
@@ -43,55 +43,12 @@
 			</span>
 		</div>
 
-		<DropdownMenu.Root>
-			<DropdownMenu.Trigger>
-				{#snippet child({ props })}
-					<Button variant="ghost" size="sm" class="gap-2" {...props}>
-						<div
-							class="flex size-7 items-center justify-center rounded-full bg-primary/15 text-[11px] font-semibold text-primary"
-						>
-							{getInitials(data.user.name, data.user.email)}
-						</div>
-						<span class="hidden text-sm font-medium sm:block">
-							{data.user.name || data.user.email}
-						</span>
-						<ChevronDown size={14} class="text-muted-foreground" />
-					</Button>
-				{/snippet}
-			</DropdownMenu.Trigger>
 
-			<DropdownMenu.Content align="end" class="w-56">
-				<DropdownMenu.Label class="font-normal">
-					<div class="flex flex-col gap-0.5">
-						<span class="font-semibold">{data.user.name || 'User'}</span>
-						<span class="truncate text-xs text-muted-foreground">{data.user.email}</span>
-					</div>
-				</DropdownMenu.Label>
-				<DropdownMenu.Separator />
-				<DropdownMenu.Item>
-					{#snippet child({ props })}
-						<a href="/dashboard" class="flex w-full items-center gap-2 text-muted-foreground" {...props}>
-							<LayoutDashboard size={14} />
-							Dashboard
-						</a>
-					{/snippet}
-				</DropdownMenu.Item>
-				<form method="post" action="/dashboard?/signOut" use:enhance>
-					<DropdownMenu.Item>
-						{#snippet child({ props })}
-							<button
-								type="submit"
-								class="flex w-full items-center gap-2 text-muted-foreground"
-								{...props}
-							>
-								<LogOut size={14} />
-								Sign out
-							</button>
-						{/snippet}
-					</DropdownMenu.Item>
-				</form>
-			</DropdownMenu.Content>
-		</DropdownMenu.Root>
+		<div class="hidden items-center gap-2 rounded-md border border-border bg-secondary px-3 py-2 text-sm font-medium text-muted-foreground sm:flex">
+            <span>{data.user?.email}</span>
+        </div>
+
+		<SignOutButton action="/dashboard?/signOut" labelClass="hidden sm:inline" />
 	</header>
 
 	<!-- Nav -->

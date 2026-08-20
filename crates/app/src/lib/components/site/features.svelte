@@ -58,7 +58,7 @@
 			{#each features as feature (feature.title)}
 				<div class="group relative bg-card p-6 transition-colors hover:bg-secondary/50">
 					<span
-						class="absolute inset-x-0 top-0 h-px scale-x-0 bg-gradient-to-r from-primary to-accent transition-transform duration-300 group-hover:scale-x-100"
+						class="absolute inset-x-0 top-0 h-px scale-x-0 bg-gradient-to-r from-primary to-signal transition-transform duration-300 group-hover:scale-x-100"
 					></span>
 					<div
 						class="flex size-10 items-center justify-center rounded-lg bg-primary/10 ring-1 ring-inset ring-primary/25"

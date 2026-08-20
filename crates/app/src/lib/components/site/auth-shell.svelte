@@ -44,7 +44,7 @@
 						&nbsp;&nbsp;forwarding <span class="text-primary">https://ada.{RELAY_DOMAIN}</span>
 					</p>
 					<p class="text-muted-foreground">
-						&nbsp;&nbsp;<span class="text-accent">✓</span> reserved to your account
+						&nbsp;&nbsp;<span class="text-signal">✓</span> reserved to your account
 					</p>
 				</div>
 			</div>

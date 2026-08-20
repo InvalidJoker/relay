@@ -1,7 +1,8 @@
 <script lang="ts">
 	import RelayLogo from '$lib/components/relay-logo.svelte';
 	import GithubIcon from './github-icon.svelte';
-	import { LayoutDashboard, LogOut, Menu, X } from 'lucide-svelte';
+	import SignOutButton from './sign-out-button.svelte';
+	import { LayoutDashboard, Menu, X } from 'lucide-svelte';
 	import { REPO_URL } from '$lib/site';
 
 	let { user = null }: { user?: { name?: string | null; email?: string } | null } = $props();
@@ -53,15 +54,9 @@
 					<LayoutDashboard class="size-4" />
 					Dashboard
 				</a>
-				<form method="post" action="/?/signOut" class="hidden sm:block">
-					<button
-						type="submit"
-						class="inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground"
-					>
-						<LogOut class="size-4" />
-						Sign out
-					</button>
-				</form>
+				<div class="hidden sm:block">
+					<SignOutButton />
+				</div>
 			{:else}
 				<a
 					href="/login"
@@ -108,14 +103,7 @@
 				{/each}
 				{#if user}
 					<li>
-						<form method="post" action="/?/signOut">
-							<button
-								type="submit"
-								class="flex w-full items-center gap-2 rounded-md px-2 py-2.5 text-left text-sm text-muted-foreground transition-colors hover:text-foreground"
-							>
-								<LogOut class="size-4" /> Sign out
-							</button>
-						</form>
+						<SignOutButton variant="full" />
 					</li>
 				{:else}
 					<li>

@@ -23,8 +23,11 @@
 	--secondary-foreground: oklch(0.96 0.004 250);
 	--muted: oklch(0.23 0.021 264);
 	--muted-foreground: oklch(0.69 0.022 258);
-	--accent: oklch(0.82 0.13 68);
-	--accent-foreground: oklch(0.22 0.04 62);
+	--accent: oklch(0.25 0.023 264);
+	--accent-foreground: oklch(0.96 0.004 250);
+	/* Brand amber — highlights only, never a hover surface. */
+	--signal: oklch(0.82 0.13 68);
+	--signal-foreground: oklch(0.22 0.04 62);
 	--destructive: oklch(0.64 0.21 25);
 	--destructive-foreground: oklch(0.96 0.004 250);
 	--border: oklch(0.29 0.022 264);
@@ -67,6 +70,8 @@
 	--color-muted-foreground: var(--muted-foreground);
 	--color-accent: var(--accent);
 	--color-accent-foreground: var(--accent-foreground);
+	--color-signal: var(--signal);
+	--color-signal-foreground: var(--signal-foreground);
 	--color-destructive: var(--destructive);
 	--color-destructive-foreground: var(--destructive-foreground);
 	--color-border: var(--border);
@@ -102,6 +107,22 @@
 	}
 	body {
 		@apply bg-background text-foreground antialiased;
+	}
+	/* Tailwind v4 drops the UA pointer cursor on buttons — put it back. */
+	button:not(:disabled),
+	[role='button']:not([aria-disabled='true']),
+	[role='menuitem'],
+	[role='menuitemcheckbox'],
+	[role='menuitemradio'],
+	[role='option'],
+	[role='tab'],
+	label[for],
+	summary {
+		cursor: pointer;
+	}
+	button:disabled,
+	[role='button'][aria-disabled='true'] {
+		cursor: not-allowed;
 	}
 	html {
 		@apply font-sans;

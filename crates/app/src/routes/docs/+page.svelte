@@ -166,12 +166,12 @@ volumes:
 	<div
 		class="my-6 flex gap-3 rounded-lg border p-4 {tone === 'info'
 			? 'border-primary/25 bg-primary/5'
-			: 'border-accent/30 bg-accent/5'}"
+			: 'border-signal/30 bg-signal/5'}"
 	>
 		{#if tone === 'info'}
 			<Info class="mt-0.5 size-4 shrink-0 text-primary" />
 		{:else}
-			<TriangleAlert class="mt-0.5 size-4 shrink-0 text-accent" />
+			<TriangleAlert class="mt-0.5 size-4 shrink-0 text-signal" />
 		{/if}
 		<div>
 			<p class="text-sm font-medium text-foreground">{title}</p>

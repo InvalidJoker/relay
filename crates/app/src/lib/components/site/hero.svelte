@@ -40,7 +40,7 @@
 					public internet
 					<span
 						aria-hidden="true"
-						class="absolute -bottom-1 left-0 h-px w-full bg-gradient-to-r from-primary via-accent to-transparent"
+						class="absolute -bottom-1 left-0 h-px w-full bg-gradient-to-r from-primary via-signal to-transparent"
 					></span>
 				</span>
 			</h1>
@@ -104,7 +104,7 @@
 					</p>
 					<p class="text-muted-foreground">&nbsp;&nbsp;connecting to relay edge...</p>
 					<p class="text-muted-foreground">
-						&nbsp;&nbsp;tunnel established <span class="text-accent">✓</span>
+						&nbsp;&nbsp;tunnel established <span class="text-signal">✓</span>
 					</p>
 					<p class="break-all text-foreground">
 						&nbsp;&nbsp;forwarding&nbsp;&nbsp;<span class="text-primary">{publicUrl}</span>
