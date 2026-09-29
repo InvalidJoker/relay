@@ -18,6 +18,7 @@ We also plan to offer unique features, such as persistent domains, so your frien
   - [Expose an HTTP service](#expose-an-http-service)
   - [Expose a TCP service](#expose-a-tcp-service)
   - [Run from a config file](#run-from-a-config-file)
+- [Self-hosting](#self-hosting)
 - [Credits](#credits)
 
 ---
@@ -167,6 +168,17 @@ domain = "myapp"
 # port = 25565
 # remote_port = 8080
 ```
+
+---
+
+## Self-hosting
+
+A sample setup is available in [`compose.yml`](compose.yml).
+
+> [!WARNING]
+> The `relay` service uses `network_mode: host`. Do not switch it to published `ports:`. Docker starts a separate `docker-proxy` process for every published port, and for the `10000-20000` range this can use up all of your server's memory and freeze it.
+>
+> With host networking, relay binds its ports directly on the host: `2550`, `80`, `443` and the tunnel port range. Make sure they are free, or change `HTTP_PORT` / `HTTPS_PORT`.
 
 ---
 
