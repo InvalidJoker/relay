@@ -1,0 +1,91 @@
+@import "tailwindcss";
+@import "@nuxt/ui";
+
+@theme {
+  --font-sans: 'Geist', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Monochrome, square-cornered theme in the spirit of better-auth.com */
+:root {
+  --ui-radius: 0rem;
+  --ui-header-height: 3.5rem;
+
+  --ui-primary: var(--ui-color-neutral-950);
+  --ui-bg: #ffffff;
+  --ui-bg-muted: #fafafa;
+  --ui-bg-elevated: #f4f4f5;
+  --ui-bg-accented: #e9e9eb;
+  --ui-border: #e4e4e7;
+  --ui-border-muted: #efeff1;
+  --ui-border-accented: #d4d4d8;
+
+  --stripe: #e4e4e7;
+  --grid-line: rgb(0 0 0 / 0.05);
+}
+
+.dark {
+  --ui-primary: #ffffff;
+  --ui-bg: #050505;
+  --ui-bg-muted: #0a0a0a;
+  --ui-bg-elevated: #111111;
+  --ui-bg-accented: #1a1a1a;
+  --ui-border: #1f1f1f;
+  --ui-border-muted: #161616;
+  --ui-border-accented: #2a2a2a;
+  --ui-text-muted: #a1a1a1;
+  --ui-text-dimmed: #6b6b6b;
+
+  --stripe: #1c1c1c;
+  --grid-line: rgb(255 255 255 / 0.04);
+}
+
+::selection {
+  color: var(--ui-bg);
+  background-color: var(--ui-text-highlighted);
+}
+
+body {
+  background: var(--ui-bg);
+  -webkit-font-smoothing: antialiased;
+}
+
+@utility bg-stripes {
+  background-image: repeating-linear-gradient(-45deg, var(--stripe) 0 1px, transparent 1px 6px);
+}
+
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Small "+" marker, positioned by the caller */
+@utility cross {
+  width: 9px;
+  height: 9px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--ui-text-highlighted), var(--ui-text-highlighted)) center / 1px 100% no-repeat,
+    linear-gradient(var(--ui-text-highlighted), var(--ui-text-highlighted)) center / 100% 1px no-repeat;
+}
+
+/* Mono eyebrow label, e.g. "[ features ]" */
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  line-height: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ui-text-muted);
+}
+
+@keyframes caret {
+  50% { opacity: 0; }
+}
+
+@keyframes line-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: none; }
+}
