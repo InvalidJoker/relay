@@ -178,7 +178,16 @@ A sample setup is available in [`compose.yml`](compose.yml).
 > [!WARNING]
 > The `relay` service uses `network_mode: host`. Do not switch it to published `ports:`. Docker starts a separate `docker-proxy` process for every published port, and for the `10000-20000` range this can use up all of your server's memory and freeze it.
 >
-> With host networking, relay binds its ports directly on the host: `2550`, `80`, `443` and the tunnel port range. Make sure they are free, or change `HTTP_PORT` / `HTTPS_PORT`.
+> With host networking, relay binds its ports directly on the host: `2550`, the tunnel port range and its HTTP port. Caddy binds `80` and `443`. Make sure they are free.
+
+### TLS
+
+The `caddy` service terminates TLS and forwards plain HTTP to the relay on `127.0.0.1:8080`:
+
+- **Subdomains** use one wildcard certificate for `*.RELAY_DOMAIN`, issued through the Cloudflare DNS challenge. Set `CLOUDFLARE_API_TOKEN` to a token with `Zone:Read` and `DNS:Edit` on the zone. For another DNS provider, swap the plugin in [`caddy/Dockerfile`](caddy/Dockerfile) and the `dns` line in [`caddy/Caddyfile`](caddy/Caddyfile).
+- **Custom domains** get a certificate on their first request. Caddy only issues one if the app's `/api/internal/tls/ask` endpoint knows the domain, and the domain's DNS must point directly at the relay server.
+
+Without Caddy, leave `HTTP_BIND`, `HTTP_PORT` and `HTTPS_PORT` unset and the relay serves `80` and a self-signed `443` itself.
 
 ---
 

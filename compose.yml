@@ -26,6 +26,8 @@ services:
       - RELAY_URL=relay.koder.wtf
       - PUBLIC_PORT_RANGE_START=10000
       - PUBLIC_PORT_RANGE_END=20000
+    ports:
+      - 127.0.0.1:3000:3000
     networks:
       - proxiable
 
@@ -40,6 +42,26 @@ services:
       - BACKEND_URL=https://relay.koder.wtf
       - PORT_RANGE_START=10000
       - PORT_RANGE_END=20000
+      - HTTP_BIND=127.0.0.1
+      - HTTP_PORT=8080
+      - HTTPS_PORT=0
+
+  caddy:
+    build: ./caddy
+    container_name: relay-caddy
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - RELAY_DOMAIN=relay.koder.wtf
+      - RELAY_UPSTREAM=127.0.0.1:8080
+      - ASK_URL=http://127.0.0.1:3000/api/internal/tls/ask
+      - ACME_EMAIL=you@example.com
+      - CLOUDFLARE_API_TOKEN=YOUR_TOKEN_HERE
+    volumes:
+      - caddy_data:/data
+      - caddy_config:/config
 
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:

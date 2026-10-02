@@ -120,7 +120,7 @@ async function remove(kind: Kind, id: string, label: string) {
 
           <ResourceSection
             title="Custom domains"
-            description="Map your own domain to a relay tunnel."
+            :description="`Map your own domain to a relay tunnel. Point a CNAME record at ${config.tcpDomain} and HTTPS is set up on the first request.`"
             icon="i-lucide-globe"
             :used="data.domains.length"
             :limit="limitFor('domains')"
