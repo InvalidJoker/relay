@@ -47,7 +47,7 @@ services:
       - HTTPS_PORT=0
 
   caddy:
-    build: ./caddy
+    image: ghcr.io/invalidjoker/relay-caddy:main
     container_name: relay-caddy
     restart: unless-stopped
     network_mode: host
