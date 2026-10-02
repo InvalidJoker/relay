@@ -1,0 +1,29 @@
+{
+	email {$ACME_EMAIL}
+
+	# Only issue certificates for custom domains registered in the app
+	on_demand_tls {
+		ask {$ASK_URL}
+	}
+}
+
+# Relay subdomains: one wildcard certificate via the Cloudflare DNS challenge
+*.{$RELAY_DOMAIN} {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+	reverse_proxy {$RELAY_UPSTREAM}
+}
+
+# Custom domains: certificate issued on the first request
+https:// {
+	tls {
+		on_demand
+	}
+	reverse_proxy {$RELAY_UPSTREAM}
+}
+
+# Plain HTTP for custom domains keeps working
+http:// {
+	reverse_proxy {$RELAY_UPSTREAM}
+}

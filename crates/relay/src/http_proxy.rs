@@ -78,6 +78,10 @@ pub async fn start_http_proxy(
     http_tunnels: HttpTunnelMap,
 ) -> Result<()> {
     let port = env_port("HTTP_PORT", 80);
+    let bind = std::env::var("HTTP_BIND")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(bind);
     let listener = TcpListener::bind((bind, port)).await?;
     info!(addr = ?bind, port, "HTTP proxy listening");
 
@@ -95,6 +99,10 @@ pub async fn start_https_proxy(
     http_tunnels: HttpTunnelMap,
 ) -> Result<()> {
     let port = env_port("HTTPS_PORT", 443);
+    if port == 0 {
+        info!("HTTPS proxy disabled");
+        return Ok(());
+    }
     let listener = TcpListener::bind((bind, port)).await?;
     info!(addr = ?bind, port, "HTTPS proxy listening");
 
