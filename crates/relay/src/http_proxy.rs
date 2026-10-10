@@ -12,14 +12,31 @@ use hyper_util::rt::{TokioIo, TokioTimer};
 use relay_common::model::http::AuthConfig;
 use std::future::Future;
 use std::net::{IpAddr, SocketAddr};
-use std::sync::Arc;
-use std::time::Duration;
+use std::sync::{Arc, Mutex};
+use std::time::{Duration, Instant};
 use subtle::ConstantTimeEq;
 use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::net::{TcpListener, TcpStream};
 use tokio_rustls::LazyConfigAcceptor;
 use tracing::{debug, error, info, warn};
 use uuid::Uuid;
+
+type Sender = hyper::client::conn::http1::SendRequest<Incoming>;
+
+/// An open, keep-alive connection through the client's tunnel.
+pub struct Idle {
+    sender: Sender,
+    since: Instant,
+}
+
+/// Open tunnel connections of one client, so requests don't pay for a new tunnel each time.
+pub type TunnelPool = Arc<Mutex<Vec<Idle>>>;
+
+/// How long a tunnel connection may sit unused before it is dropped.
+const IDLE_TTL: Duration = Duration::from_secs(30);
+
+/// Upper bound of tunnel connections kept per client.
+const MAX_POOLED: usize = 16;
 
 /// A connected client serving one domain.
 #[derive(Clone)]
@@ -28,6 +45,7 @@ pub struct HttpClient {
     pub id: Uuid,
     pub tx: tokio::sync::mpsc::Sender<Uuid>,
     pub auth: Option<AuthConfig>,
+    pub pool: TunnelPool,
 }
 
 pub type HttpClientMap = Arc<DashMap<String, HttpClient>>;
@@ -266,33 +284,141 @@ async fn handle_request(
 
     add_forwarded_headers(&mut req, peer, scheme);
 
+    // Must be taken before the request is consumed
+    let client_upgrade = req
+        .headers()
+        .contains_key(UPGRADE)
+        .then(|| hyper::upgrade::on(&mut req));
+
+    // Upgraded connections stop being HTTP, so they never share a tunnel
+    let poolable = client_upgrade.is_none() && !wants_close(req.headers());
+
+    let reused = if poolable {
+        checkout(&client.pool)
+    } else {
+        None
+    };
+    let was_reused = reused.is_some();
+    let mut sender = match reused {
+        Some(sender) => sender,
+        None => match open_tunnel(&client, &http_tunnels).await {
+            Ok(sender) => sender,
+            Err(msg) => return Ok(internal_server_error(msg)),
+        },
+    };
+
+    let result = match sender.try_send_request(req).await {
+        // A pooled connection that died while idle never saw the request, so retry once
+        Err(mut err) if was_reused && err.message().is_some() => {
+            debug!("pooled tunnel was stale, opening a new one");
+            let Some(req) = err.take_message() else {
+                return Ok(internal_server_error("Failed to proxy request"));
+            };
+            sender = match open_tunnel(&client, &http_tunnels).await {
+                Ok(sender) => sender,
+                Err(msg) => return Ok(internal_server_error(msg)),
+            };
+            sender.try_send_request(req).await
+        }
+        other => other,
+    };
+
+    match result {
+        Ok(mut res) => {
+            if res.status() == StatusCode::SWITCHING_PROTOCOLS {
+                if let Some(client_upgrade) = client_upgrade {
+                    let server_upgrade = hyper::upgrade::on(&mut res);
+                    tokio::spawn(async move {
+                        match tokio::try_join!(client_upgrade, server_upgrade) {
+                            Ok((client, server)) => {
+                                let mut client = TokioIo::new(client);
+                                let mut server = TokioIo::new(server);
+                                if let Err(err) =
+                                    tokio::io::copy_bidirectional(&mut client, &mut server).await
+                                {
+                                    debug!(%err, "Upgraded connection closed");
+                                }
+                            }
+                            Err(err) => warn!(%err, "Upgrade failed"),
+                        }
+                    });
+                }
+            } else if poolable {
+                // Not ready again until the response body is fully read, checkout skips it until then
+                release(&client.pool, sender);
+            }
+            Ok(res.map(|b| b.boxed()))
+        }
+        Err(err) => {
+            error!(err = %err.error(), "Failed to send request");
+            Ok(internal_server_error("Failed to proxy request"))
+        }
+    }
+}
+
+fn wants_close(headers: &hyper::HeaderMap) -> bool {
+    headers
+        .get(hyper::header::CONNECTION)
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|value| {
+            value
+                .split(',')
+                .any(|token| token.trim().eq_ignore_ascii_case("close"))
+        })
+}
+
+/// Takes a usable connection out of the pool, dropping dead and expired ones.
+fn checkout(pool: &TunnelPool) -> Option<Sender> {
+    let mut idle = pool.lock().ok()?;
+    // Connections still streaming a response are not ready yet but stay in the pool
+    idle.retain(|entry| {
+        !entry.sender.is_closed() && (!entry.sender.is_ready() || entry.since.elapsed() < IDLE_TTL)
+    });
+    let position = idle.iter().position(|entry| entry.sender.is_ready())?;
+    Some(idle.swap_remove(position).sender)
+}
+
+fn release(pool: &TunnelPool, sender: Sender) {
+    if let Ok(mut idle) = pool.lock()
+        && idle.len() < MAX_POOLED
+    {
+        idle.push(Idle {
+            sender,
+            since: Instant::now(),
+        });
+    }
+}
+
+/// Asks the client for a new tunnel connection and starts HTTP on it.
+async fn open_tunnel(
+    client: &HttpClient,
+    http_tunnels: &HttpTunnelMap,
+) -> Result<Sender, &'static str> {
     let id = Uuid::new_v4();
     let (tx, rx) = tokio::sync::oneshot::channel();
     http_tunnels.insert(id, tx);
 
     if client.tx.send(id).await.is_err() {
         http_tunnels.remove(&id);
-        return Ok(internal_server_error("Client disconnected"));
+        return Err("Client disconnected");
     }
 
     let tunnel_stream = match tokio::time::timeout(TUNNEL_TIMEOUT, rx).await {
         Ok(Ok(stream)) => stream,
         _ => {
             http_tunnels.remove(&id);
-            return Ok(internal_server_error("Tunnel timeout"));
+            return Err("Tunnel timeout");
         }
     };
 
-    let io = TokioIo::new(tunnel_stream);
-
-    let (mut sender, conn) = match hyper::client::conn::http1::Builder::new()
-        .handshake(io)
+    let (sender, conn) = match hyper::client::conn::http1::Builder::new()
+        .handshake(TokioIo::new(tunnel_stream))
         .await
     {
         Ok(res) => res,
         Err(err) => {
             error!(%err, "Client handshake failed");
-            return Ok(internal_server_error("Handshake failed"));
+            return Err("Handshake failed");
         }
     };
 
@@ -302,40 +428,7 @@ async fn handle_request(
         }
     });
 
-    // Must be taken before the request is consumed
-    let client_upgrade = req
-        .headers()
-        .contains_key(UPGRADE)
-        .then(|| hyper::upgrade::on(&mut req));
-
-    match sender.send_request(req).await {
-        Ok(mut res) => {
-            if res.status() == StatusCode::SWITCHING_PROTOCOLS
-                && let Some(client_upgrade) = client_upgrade
-            {
-                let server_upgrade = hyper::upgrade::on(&mut res);
-                tokio::spawn(async move {
-                    match tokio::try_join!(client_upgrade, server_upgrade) {
-                        Ok((client, server)) => {
-                            let mut client = TokioIo::new(client);
-                            let mut server = TokioIo::new(server);
-                            if let Err(err) =
-                                tokio::io::copy_bidirectional(&mut client, &mut server).await
-                            {
-                                debug!(%err, "Upgraded connection closed");
-                            }
-                        }
-                        Err(err) => warn!(%err, "Upgrade failed"),
-                    }
-                });
-            }
-            Ok(res.map(|b| b.boxed()))
-        }
-        Err(err) => {
-            error!(%err, "Failed to send request");
-            Ok(internal_server_error("Failed to proxy request"))
-        }
-    }
+    Ok(sender)
 }
 
 fn body_from(msg: impl Into<Bytes>) -> BoxBody<Bytes, hyper::Error> {

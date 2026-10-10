@@ -258,6 +258,7 @@ impl Server {
                     id: registration,
                     tx,
                     auth: http.auth,
+                    pool: Arc::default(),
                 });
             }
         }
