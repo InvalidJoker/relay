@@ -1,6 +1,7 @@
 mod auth;
 mod client;
 mod config;
+mod latency;
 
 use crate::auth::TokenResponse;
 use crate::client::Client;
@@ -52,6 +53,10 @@ enum Commands {
 
         #[arg(long)]
         save: bool,
+
+        /// Use this relay (id or name) instead of the one with the lowest latency
+        #[arg(long)]
+        relay: Option<String>,
     },
     Tcp {
         /// The Local port to listen on
@@ -62,10 +67,18 @@ enum Commands {
 
         #[arg(long)]
         save: bool,
+
+        /// Use this relay (id or name) instead of the one with the lowest latency
+        #[arg(long)]
+        relay: Option<String>,
     },
     Run {
         #[arg(short, long)]
         path: Option<PathBuf>,
+
+        /// Use this relay (id or name) instead of the one with the lowest latency
+        #[arg(long)]
+        relay: Option<String>,
     },
 }
 
@@ -186,10 +199,12 @@ async fn main() -> anyhow::Result<()> {
             username,
             password,
             save,
+            relay,
         } => {
             let relay_info = auth::get_relay_info(config.server.clone(), &client)
                 .await
                 .context("Failed to get relay info")?;
+            let relay_host = latency::pick_relay(&relay_info, relay.as_deref()).await?;
 
             let auth = match (username, password) {
                 (Some(u), Some(p)) => Some(AuthConfig {
@@ -205,14 +220,8 @@ async fn main() -> anyhow::Result<()> {
                 auth: auth.clone(),
             });
 
-            let client = Client::new(
-                "localhost",
-                port,
-                relay_info.relay_url,
-                host_config,
-                config.secret,
-            )
-            .await?;
+            let client =
+                Client::new("localhost", port, relay_host, host_config, config.secret).await?;
 
             if save {
                 let local_config = config::Config {
@@ -234,24 +243,20 @@ async fn main() -> anyhow::Result<()> {
             port,
             remote_port,
             save,
+            relay,
         } => {
             let relay_info = auth::get_relay_info(config.server.clone(), &client)
                 .await
                 .context("Failed to get relay info")?;
+            let relay_host = latency::pick_relay(&relay_info, relay.as_deref()).await?;
 
             let host_config = HostConfig::Tcp(TcpHostConfig {
                 local_port: port,
                 remote_port,
             });
 
-            let client = Client::new(
-                "localhost",
-                port,
-                relay_info.relay_url,
-                host_config,
-                config.secret,
-            )
-            .await?;
+            let client =
+                Client::new("localhost", port, relay_host, host_config, config.secret).await?;
 
             if save {
                 let local_config = config::Config {
@@ -269,7 +274,7 @@ async fn main() -> anyhow::Result<()> {
 
             client.listen().await?;
         }
-        Commands::Run { path } => {
+        Commands::Run { path, relay } => {
             let path = path.unwrap_or_else(|| PathBuf::from("relay.toml"));
 
             let config_content = std::fs::read_to_string(&path)
@@ -281,6 +286,7 @@ async fn main() -> anyhow::Result<()> {
             let relay_info = auth::get_relay_info(config.server.clone(), &client)
                 .await
                 .context("Failed to get relay info")?;
+            let relay_host = latency::pick_relay(&relay_info, relay.as_deref()).await?;
 
             match local_config.relay_type {
                 RelayType::Tcp => {
@@ -294,7 +300,7 @@ async fn main() -> anyhow::Result<()> {
                     let client = Client::new(
                         "localhost",
                         local_config.port,
-                        relay_info.relay_url,
+                        relay_host,
                         host_config,
                         config.secret,
                     )
@@ -313,7 +319,7 @@ async fn main() -> anyhow::Result<()> {
                     let client = Client::new(
                         "localhost",
                         local_config.port,
-                        relay_info.relay_url,
+                        relay_host,
                         host_config,
                         config.secret,
                     )

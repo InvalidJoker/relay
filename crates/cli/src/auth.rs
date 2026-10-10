@@ -17,8 +17,24 @@ pub(crate) struct TokenResponse {
 }
 
 #[derive(serde::Deserialize)]
+pub(crate) struct RelayEntry {
+    pub(crate) id: String,
+    pub(crate) name: String,
+    pub(crate) region: Option<String>,
+    pub(crate) host: String,
+}
+
+impl RelayEntry {
+    pub(crate) fn region_label(&self) -> &str {
+        self.region.as_deref().unwrap_or("unknown region")
+    }
+}
+
+#[derive(serde::Deserialize)]
 pub(crate) struct RelayInfoResponse {
     pub(crate) relay_url: String,
+    #[serde(default)]
+    pub(crate) relays: Vec<RelayEntry>,
 }
 
 pub(crate) async fn request_device_code(

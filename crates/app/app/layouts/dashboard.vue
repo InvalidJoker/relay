@@ -16,7 +16,8 @@ const links = computed<NavigationMenuItem[][]>(() => {
       { label: 'Admin', type: 'label' },
       { label: 'Overview', icon: 'i-lucide-chart-no-axes-column', to: '/admin', exact: true, onSelect: close },
       { label: 'Users', icon: 'i-lucide-users', to: '/admin/users', onSelect: close },
-      { label: 'All resources', icon: 'i-lucide-globe', to: '/admin/resources', onSelect: close }
+      { label: 'All resources', icon: 'i-lucide-globe', to: '/admin/resources', onSelect: close },
+      { label: 'Relays', icon: 'i-lucide-server', to: '/admin/relays', onSelect: close }
     )
   }
   return [main, [{ label: 'GitHub', icon: 'i-simple-icons-github', to: REPO_URL, target: '_blank' }]]

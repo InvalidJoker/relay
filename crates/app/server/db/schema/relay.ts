@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer } from 'drizzle-orm/pg-core';
+import { pgTable, text, timestamp, integer, boolean } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 import { user } from './auth';
 
@@ -68,3 +68,18 @@ export const subdomainRelations = relations(subdomain, ({ one }) => ({
 		references: [user.id]
 	})
 }));
+
+export const relay = pgTable('relay', {
+	id: text('id').primaryKey(),
+	name: text('name').notNull(),
+	region: text('region'),
+	// Hostname the CLI connects to (control port)
+	host: text('host').notNull().unique(),
+	// Base domain for this relay's subdomains, e.g. eu.relay.example.com
+	httpDomain: text('http_domain').notNull().unique(),
+	tcpDomain: text('tcp_domain').notNull(),
+	// Sent by the relay as X-Relay-Key so the panel knows which relay is asking
+	secret: text('secret').notNull().unique(),
+	enabled: boolean('enabled').default(true).notNull(),
+	createdAt: timestamp('created_at').defaultNow().notNull()
+});
