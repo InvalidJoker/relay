@@ -2,6 +2,7 @@ mod auth;
 mod client;
 mod config;
 mod latency;
+mod update;
 
 use crate::auth::TokenResponse;
 use crate::client::Client;
@@ -72,6 +73,7 @@ enum Commands {
         #[arg(long)]
         relay: Option<String>,
     },
+    Update,
     Run {
         #[arg(short, long)]
         path: Option<PathBuf>,
@@ -113,7 +115,7 @@ async fn main() -> anyhow::Result<()> {
         .and_then(|path| std::fs::read_to_string(path).ok())
         .and_then(|content| toml::from_str(&content).ok());
 
-    if config.is_none() && !matches!(args.command, Commands::Login { .. }) {
+    if config.is_none() && !matches!(args.command, Commands::Login { .. } | Commands::Update) {
         error!("Config file not found, please login first with `relay login`");
         std::process::exit(1);
     }
@@ -125,7 +127,15 @@ async fn main() -> anyhow::Result<()> {
 
     let client = reqwest::Client::new();
 
+    if matches!(
+        args.command,
+        Commands::Http { .. } | Commands::Tcp { .. } | Commands::Run { .. }
+    ) {
+        tokio::spawn(update::notify(client.clone()));
+    }
+
     match args.command {
+        Commands::Update => update::check(&client).await?,
         Commands::Login { server } => {
             let server = server.unwrap_or_else(|| Url::parse("https://relay.koder.wtf").unwrap());
 
