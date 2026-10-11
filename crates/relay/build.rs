@@ -7,7 +7,7 @@ fn main() {
         .output()
         .expect("Failed to execute command");
 
-    let git_hash = String::from_utf8_lossy(&output.stdout);
+    let git_hash = String::from_utf8_lossy(&output.stdout).trim().to_string();
 
     println!("cargo:rustc-env=GIT_HASH={git_hash}");
 }

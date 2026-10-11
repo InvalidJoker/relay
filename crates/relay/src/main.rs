@@ -50,8 +50,16 @@ async fn main() -> anyhow::Result<()> {
     let backend_url =
         env::var("BACKEND_URL").unwrap_or_else(|_| "http://localhost:5173".to_string());
 
-    let server = Server::new(port_range, bind, backend_url);
-    server.listen().await?;
+    let relay_key = env::var("RELAY_KEY").ok().filter(|key| !key.is_empty());
+    if relay_key.is_none() {
+        info!("RELAY_KEY not set, using the panel's default relay");
+    }
+
+    let server = Server::new(port_range, bind, backend_url, relay_key)?;
+    tokio::select! {
+        result = server.listen() => result?,
+        _ = tokio::signal::ctrl_c() => info!("shutting down"),
+    }
 
     Ok(())
 }

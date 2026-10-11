@@ -8,6 +8,7 @@ const HeadersSchema = z.object({
 
 const ADJECTIVES = ['swift', 'bright', 'silent', 'rapid', 'lucky', 'crimson', 'golden', 'frosty', 'stellar', 'shadow']
 const NOUNS = ['fox', 'wolf', 'hawk', 'river', 'cloud', 'forest', 'comet', 'flame', 'storm', 'peak']
+const randomSuffix = () => Math.floor(Math.random() * 900 + 100)
 
 const pick = (list: string[]) => list[Math.floor(Math.random() * list.length)]
 
@@ -25,7 +26,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const { relayType, provided } = parsed.data
-  const { relayDomain, tcpDomain } = relayConfig()
+  const relay = await resolveRelay(getHeader(event, 'x-relay-key'))
+  if (!relay) throw createError({ statusCode: 403, statusMessage: 'Unknown relay key' })
+  const { httpDomain: relayDomain, tcpDomain } = relay
   const userId = session.user.id
 
   if (relayType === 'tcp') {
@@ -63,7 +66,7 @@ export default defineEventHandler(async (event) => {
   }
 
   for (let i = 0; i < 5; i++) {
-    const candidate = `${pick(ADJECTIVES)}${pick(NOUNS)}`
+    const candidate = `${pick(ADJECTIVES)}${pick(NOUNS)}${randomSuffix()}`
     const taken = await db.query.subdomain.findFirst({ where: eq(schema.subdomain.subdomain, candidate) })
     if (!taken) return { success: true, result: `${candidate}.${relayDomain}` }
   }
